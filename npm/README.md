@@ -27,7 +27,7 @@ As an MCP server command (stdout carries only protocol messages; diagnostics go 
 { "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }
 ```
 
-`vexen install` (client configuration) is not implemented yet.
+To make your agents start Vexen through npx, add the `--npx` flag: `npx @onurbyte/vexen install --scope global --npx` (see the main README for scopes and the clients covered).
 
 ## Environment
 

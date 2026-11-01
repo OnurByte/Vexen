@@ -8,6 +8,11 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 - The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
 - `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
 
+## 0.2.5
+
+- `vexen install --npx` writes an entry that starts Vexen through `npx -y @onurbyte/vexen mcp --stdio` (through `cmd /c` on Windows), for people who run Vexen with `npx` and never installed the binary. Before this, an install run through `npx` wrote `vexen`, which is not on their PATH. Checked live with Claude Code on Windows.
+- README: `npx` is now the first way to run and connect Vexen, with a quick start on the first screen and an npm badge; the prebuilt binary and `cargo` follow.
+
 ## 0.2.4
 
 Findings from a second review pass (test-gap analysis by an EVREN model; each claim was checked against the code, and one was wrong and dropped).

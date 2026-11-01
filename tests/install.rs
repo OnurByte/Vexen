@@ -296,3 +296,47 @@ fn a_symlinked_config_is_left_alone_and_its_target_is_not_modified() {
     assert_eq!(read(&real), r#"{"mcpServers":{}}"#);
     assert!(fs::symlink_metadata(dir.join("mcp.json")).unwrap().file_type().is_symlink());
 }
+
+fn npx_argv() -> Vec<&'static str> {
+    if cfg!(windows) {
+        vec!["cmd", "/c", "npx", "-y", "@onurbyte/vexen", "mcp", "--stdio"]
+    } else {
+        vec!["npx", "-y", "@onurbyte/vexen", "mcp", "--stdio"]
+    }
+}
+
+#[test]
+fn npx_flag_writes_the_launcher_entry_and_is_idempotent() {
+    let (_d, h) = home();
+    assert!(run(&h, "install", &CURSOR, &["--npx"]).status.success());
+    let file = h.join(".cursor/mcp.json");
+    let v: serde_json::Value = serde_json::from_str(&read(&file)).unwrap();
+    let entry = &v["mcpServers"]["vexen"];
+    let want = npx_argv();
+    assert_eq!(entry["command"], want[0]);
+    let args: Vec<&str> = entry["args"].as_array().unwrap().iter().map(|a| a.as_str().unwrap()).collect();
+    assert_eq!(args, want[1..]);
+    assert!(out(&run(&h, "install", &CURSOR, &["--npx"])).contains("unchanged"));
+    // A plain install now sees a different entry and refuses to overwrite it.
+    assert!(!run(&h, "install", &CURSOR, &[]).status.success());
+    assert!(run(&h, "uninstall", &CURSOR, &["--npx"]).status.success());
+    let after: serde_json::Value = serde_json::from_str(&read(&file)).unwrap();
+    assert!(after["mcpServers"].get("vexen").is_none());
+}
+
+#[test]
+fn npx_flag_works_for_toml_and_opencode_and_conflicts_with_command() {
+    let (_d, h) = home();
+    let codex = ["--agent", "codex", "--scope", "global"];
+    assert!(run(&h, "install", &codex, &["--npx"]).status.success());
+    let toml = read(&h.join(".codex/config.toml"));
+    assert!(toml.contains("@onurbyte/vexen") && toml.contains("--stdio"), "{toml}");
+    assert!(out(&run(&h, "install", &codex, &["--npx"])).contains("unchanged"));
+    let oc = ["--agent", "opencode", "--scope", "global"];
+    assert!(run(&h, "install", &oc, &["--npx"]).status.success());
+    let v: serde_json::Value = serde_json::from_str(&read(&h.join(".config/opencode/opencode.json"))).unwrap();
+    let cmd: Vec<&str> = v["mcp"]["servers"]["vexen"]["command"].as_array().unwrap().iter().map(|a| a.as_str().unwrap()).collect();
+    assert_eq!(cmd, npx_argv());
+    let both = run(&h, "install", &CURSOR, &["--npx", "--command", "x"]);
+    assert!(!both.status.success(), "--npx and --command must conflict");
+}

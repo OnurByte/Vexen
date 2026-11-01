@@ -8,12 +8,49 @@ use toml_edit::{Array, DocumentMut, Item, Table, value};
 
 const NAME: &str = "vexen";
 
+/// What a client should run: a command plus its arguments.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Launch {
+    pub command: String,
+    pub args: Vec<String>,
+}
+
+impl Launch {
+    /// A `vexen` binary (by name on PATH or by absolute path).
+    pub fn binary(command: &str) -> Self {
+        Self {
+            command: command.to_owned(),
+            args: vec!["mcp".into(), "--stdio".into()],
+        }
+    }
+
+    /// The npm launcher, for people who never installed the binary. Windows
+    /// clients start `.cmd` shims through `cmd /c`.
+    pub fn npx() -> Self {
+        let mut args: Vec<String> = Vec::new();
+        let command = if cfg!(windows) {
+            args.extend(["/c".to_owned(), "npx".to_owned()]);
+            "cmd"
+        } else {
+            "npx"
+        };
+        args.extend(["-y".to_owned(), "@onurbyte/vexen".to_owned(), "mcp".to_owned(), "--stdio".to_owned()]);
+        Self { command: command.to_owned(), args }
+    }
+
+    fn argv(&self) -> Vec<&str> {
+        std::iter::once(self.command.as_str())
+            .chain(self.args.iter().map(String::as_str))
+            .collect()
+    }
+}
+
 pub struct Request<'a> {
     pub adapter: &'a Adapter,
     pub scope: Scope,
     pub home: &'a Path,
     pub repo: &'a Path,
-    pub command: &'a str,
+    pub launch: &'a Launch,
     pub dry_run: bool,
     pub force: bool,
     pub remove: bool,
@@ -33,32 +70,33 @@ pub enum Outcome {
     },
 }
 
-pub fn snippet(adapter: &Adapter, command: &str) -> String {
+pub fn snippet(adapter: &Adapter, launch: &Launch) -> String {
     match adapter.shape {
         Shape::Toml => format!(
-            "[mcp_servers.{NAME}]\ncommand = {}\nargs = [\"mcp\", \"--stdio\"]\n",
-            serde_json::to_string(command).unwrap_or_default()
+            "[mcp_servers.{NAME}]\ncommand = {}\nargs = {}\n",
+            serde_json::to_string(&launch.command).unwrap_or_default(),
+            serde_json::to_string(&launch.args).unwrap_or_default()
         ),
-        Shape::JsonOpenCode => pretty(&json!({"mcp": {"servers": {NAME: entry(adapter, command, true)}}})),
-        Shape::JsonServers { key, .. } => pretty(&json!({key: {NAME: entry(adapter, command, false)}})),
-        Shape::PrintOnly => pretty(&json!({NAME: {"command": command, "args": ["mcp", "--stdio"]}})),
+        Shape::JsonOpenCode => pretty(&json!({"mcp": {"servers": {NAME: entry(adapter, launch, true)}}})),
+        Shape::JsonServers { key, .. } => pretty(&json!({key: {NAME: entry(adapter, launch, false)}})),
+        Shape::PrintOnly => pretty(&json!({NAME: {"command": launch.command, "args": launch.args}})),
     }
 }
 
 /// `nested` is OpenCode's current `mcp.servers.<name>` layout; the older
 /// `mcp.<name>` layout also carries `enabled`.
-fn entry(adapter: &Adapter, command: &str, nested: bool) -> Value {
+fn entry(adapter: &Adapter, launch: &Launch, nested: bool) -> Value {
     match adapter.shape {
         Shape::JsonServers { typed: true, .. } => {
-            json!({"type": "stdio", "command": command, "args": ["mcp", "--stdio"]})
+            json!({"type": "stdio", "command": launch.command, "args": launch.args})
         }
         Shape::JsonOpenCode if nested => {
-            json!({"type": "local", "command": [command, "mcp", "--stdio"]})
+            json!({"type": "local", "command": launch.argv()})
         }
         Shape::JsonOpenCode => {
-            json!({"type": "local", "command": [command, "mcp", "--stdio"], "enabled": true})
+            json!({"type": "local", "command": launch.argv(), "enabled": true})
         }
-        _ => json!({"command": command, "args": ["mcp", "--stdio"]}),
+        _ => json!({"command": launch.command, "args": launch.args}),
     }
 }
 
@@ -68,11 +106,11 @@ fn pretty(v: &Value) -> String {
     s
 }
 
-fn refuse(path: Option<PathBuf>, reason: impl Into<String>, adapter: &Adapter, command: &str) -> Outcome {
+fn refuse(path: Option<PathBuf>, reason: impl Into<String>, adapter: &Adapter, launch: &Launch) -> Outcome {
     Outcome::Refused {
         path,
         reason: reason.into(),
-        snippet: snippet(adapter, command),
+        snippet: snippet(adapter, launch),
     }
 }
 
@@ -83,7 +121,7 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
             None,
             format!("{} needs a manual edit ({})", adapter.label, adapter.support),
             adapter,
-            req.command,
+            req.launch,
         ));
     }
     let Some(path) = adapter.config_path(req.scope, req.home, req.repo) else {
@@ -91,7 +129,7 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
             None,
             format!("{} has no {:?} config location", adapter.label, req.scope),
             adapter,
-            req.command,
+            req.launch,
         ));
     };
     if fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
@@ -99,7 +137,7 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
             Some(path),
             "the config file is a symbolic link, so it was left untouched (edit its target by hand)",
             adapter,
-            req.command,
+            req.launch,
         ));
     }
     let existing = match fs::read_to_string(&path) {
@@ -113,7 +151,7 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
     };
     let (new_text, changed) = match edited {
         Ok(v) => v,
-        Err(reason) => return Ok(refuse(Some(path), reason, adapter, req.command)),
+        Err(reason) => return Ok(refuse(Some(path), reason, adapter, req.launch)),
     };
     if !changed {
         return Ok(Outcome::Unchanged(path));
@@ -209,7 +247,7 @@ fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
             Some(Value::Object(m)) => m.contains_key("servers") || m.keys().all(|k| k == "timeout"),
             _ => true,
         };
-    let wanted = entry(req.adapter, req.command, nested);
+    let wanted = entry(req.adapter, req.launch, nested);
     let unchanged = || Ok((existing.unwrap_or_default().to_owned(), false));
     let container = if req.remove {
         match top.get_mut(key) {
@@ -285,10 +323,11 @@ fn edit_toml(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
         .parse()
         .map_err(|e| format!("not valid TOML, left untouched: {e}"))?;
     let mut wanted = Table::new();
-    wanted.insert("command", value(req.command));
+    wanted.insert("command", value(req.launch.command.as_str()));
     let mut args = Array::new();
-    args.push("mcp");
-    args.push("--stdio");
+    for a in &req.launch.args {
+        args.push(a.as_str());
+    }
     wanted.insert("args", value(args));
 
     let servers = if req.remove {
@@ -309,9 +348,9 @@ fn edit_toml(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
     };
     let current = servers.get(NAME).map(|i| match i.as_table_like() {
         Some(t) => t.iter().count() == 2 && {
-            let c = t.get("command").and_then(Item::as_str) == Some(req.command);
+            let c = t.get("command").and_then(Item::as_str) == Some(req.launch.command.as_str());
             let a = t.get("args").and_then(Item::as_array).is_some_and(|a| {
-                a.iter().map(|v| v.as_str()).eq([Some("mcp"), Some("--stdio")])
+                a.iter().map(|v| v.as_str()).eq(req.launch.args.iter().map(|s| Some(s.as_str())))
             });
             c && a
         },
