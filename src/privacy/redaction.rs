@@ -87,14 +87,23 @@ pub fn redact_secrets(text: &str) -> String {
     out.join("\n")
 }
 
+/// A known prefix at a word boundary followed by a long run of token characters.
+/// Hyphens and underscores count, so `sk-proj-...`, `sk-ant-api03-...` and
+/// `xoxb-1234-5678-...` are caught; the boundary keeps ordinary words such as
+/// `risk-assessment-...` from matching `sk-`.
 fn contains_token_prefix(text: &str, prefix: &str) -> bool {
     text.match_indices(prefix).any(|(at, _)| {
-        let suffix = &text[at + prefix.len()..];
-        suffix
+        let at_boundary = text[..at]
             .chars()
-            .take_while(|c| c.is_ascii_alphanumeric())
-            .count()
-            >= 16
+            .next_back()
+            .is_none_or(|c| !c.is_ascii_alphanumeric() && c != '_');
+        let suffix = &text[at + prefix.len()..];
+        at_boundary
+            && suffix
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_')
+                .count()
+                >= 16
     })
 }
 
@@ -214,5 +223,22 @@ mod more_tests {
         let out = redact_secrets("ghp_0123456789abcdef0123456789abcdef01234567 see https://example.com");
         assert!(!out.contains("ghp_0123"), "{out}");
         assert!(out.contains("see"), "{out}");
+    }
+}
+
+#[cfg(test)]
+mod hyphenated_token_tests {
+    use super::*;
+
+    #[test]
+    fn hyphenated_modern_keys_are_detected() {
+        assert!(contains_secret("sk-proj-AbCdEfGhIjKlMnOpQrStUvWxYz0123456789"));
+        assert!(contains_secret("use sk-ant-api03-AbCdEfGhIjKlMnOpQrStUvWxYz012345 here"));
+    }
+
+    #[test]
+    fn ordinary_hyphenated_words_are_not_flagged() {
+        assert!(!contains_secret("the risk-assessment-for-the-new-service-rollout-plan is ready"));
+        assert!(!contains_secret("task-force-for-the-quarterly-review-of-open-items"));
     }
 }

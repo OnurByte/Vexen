@@ -367,3 +367,113 @@ fn item_status_uses_the_same_snake_case_names_as_the_envelope() {
     assert_eq!(v["status"], "observed_failure");
     assert_eq!(v["items"][0]["status"], "observed_failure", "{v}");
 }
+
+fn import_file(root: &Path, name: &str, lines: &[String]) -> Output {
+    let file = root.join(name);
+    std::fs::write(&file, format!("{{\"vexen_export\":1}}\n{}\n", lines.join("\n"))).unwrap();
+    Command::new(env!("CARGO_BIN_EXE_vexen"))
+        .args(["import"])
+        .arg(&file)
+        .arg("--repo")
+        .arg(root)
+        .output()
+        .unwrap()
+}
+
+fn record_line(id: &str, key: &str, summary: &str, seq: u32) -> String {
+    let hash = "0".repeat(64);
+    format!(
+        r#"{{"id":"{id}","parent_id":null,"idempotency_key":"{key}","sequence":{seq},"kind":"attempt","payload":{{"type":"record","data":{{"idempotency_key":"{key}","kind":"attempt","summary":"{summary}","anchor_path":"main.rs","anchor_sha256":"{hash}","git_commit":null,"conditions":[]}}}},"previous_hash":"","hash":"x"}}"#
+    )
+}
+
+#[test]
+fn import_rejects_conflicting_duplicate_keys_without_writes() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let o = import_file(
+        &root,
+        "dup.jsonl",
+        &[record_line("a", "k1", "first", 1), record_line("b", "k1", "different", 2)],
+    );
+    assert!(!o.status.success());
+    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 0, "nothing may be written");
+}
+
+#[test]
+fn import_rejects_a_key_that_conflicts_with_an_existing_record() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    Store::open(&root).unwrap().append(attempt("k1")).unwrap();
+    let o = import_file(
+        &root,
+        "clash.jsonl",
+        &[record_line("a", "fresh", "new one", 1), record_line("b", "k1", "conflicting summary", 2)],
+    );
+    assert!(!o.status.success());
+    assert_eq!(
+        Store::open(&root).unwrap().events().unwrap().len(),
+        1,
+        "the valid first line must not be written when a later one conflicts"
+    );
+}
+
+#[test]
+fn check_diff_returns_only_notes_for_changed_files() {
+    let (_dir, root) = repository();
+    for f in ["a.rs", "b.rs"] {
+        std::fs::write(root.join(f), format!("fn {}() {{}}\n", &f[..1])).unwrap();
+    }
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-qm", "add a and b"]);
+    vexen(&["init"], &root);
+    std::fs::write(root.join("a.rs"), "fn a() { /* changed */ }\n").unwrap();
+    for f in ["a.rs", "b.rs"] {
+        let (_, rec, _) = run(&["record", "--path", f, "--summary", &format!("failure in {f}")], &root);
+        let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        run(&["outcome", &id, "--test-id", "t", "--exit-code", "1"], &root);
+    }
+    let (ok, out, err) = run(&["check", "--diff", "HEAD"], &root);
+    assert!(ok, "{err}");
+    let v: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let items = v["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1, "{v}");
+    assert!(items[0]["text"].as_str().unwrap().contains("a.rs"), "{v}");
+    let (bad, _, _) = run(&["check", "--diff=--help"], &root);
+    assert!(!bad, "an option-like ref must be rejected");
+}
+
+#[cfg(unix)]
+#[test]
+fn observe_records_signal_termination_as_minus_one() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "killed test"], &root);
+    let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let o = Command::new(env!("CARGO_BIN_EXE_vexen"))
+        .args(["observe", &id, "--test-id", "t::killed", "--repo"])
+        .arg(&root)
+        .args(["--", "sh", "-c", "kill -TERM $$"])
+        .output()
+        .unwrap();
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    let json = serde_json::to_string(&Store::open(&root).unwrap().events().unwrap()[1]).unwrap();
+    assert!(json.contains("\"exit_code\":-1"), "{json}");
+}
+
+#[cfg(unix)]
+#[test]
+fn init_refuses_a_symlinked_vexen_directory_and_writes_nothing_outside() {
+    let (_dir, root) = repository();
+    let outside = tempfile::tempdir().unwrap();
+    std::os::unix::fs::symlink(outside.path(), root.join(".vexen")).unwrap();
+    let o = vexen(&["init"], &root);
+    assert!(!o.status.success());
+    assert_eq!(std::fs::read_dir(outside.path()).unwrap().count(), 0, "nothing may be written through the link");
+}

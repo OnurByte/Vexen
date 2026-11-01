@@ -6,7 +6,8 @@ use crate::{
 use std::{collections::HashMap, path::Path};
 
 /// Parse and screen the whole file first, then replay. A malformed line,
-/// secret-like text or a dangling parent reference writes nothing.
+/// secret-like text, a dangling parent reference or an idempotency-key conflict
+/// (inside the file or with an existing record) writes nothing.
 pub fn run(repo: &RepoArg, file: &Path) -> CliResult {
     let text = std::fs::read_to_string(file)?;
     let mut lines = text.lines().filter(|l| !l.trim().is_empty());
@@ -41,6 +42,38 @@ pub fn run(repo: &RepoArg, file: &Path) -> CliResult {
         }
     }
     let store = Store::open(&repo.root()?)?;
+    // The store rejects a key reused with different content, but only while
+    // replaying; check the file against itself and the store first so a late
+    // conflict cannot leave earlier lines written.
+    let mut keyed: HashMap<String, String> = HashMap::new();
+    let mut children: HashMap<(EventId, String), String> = HashMap::new();
+    for (number, event) in events.iter().enumerate() {
+        let conflict = |what: &str| format!("event {}: {what} conflicts with another event in the import", number + 1);
+        match &event.payload {
+            EventPayload::Record(data) => {
+                let json = serde_json::to_string(data)?;
+                if keyed.insert(data.idempotency_key.clone(), json.clone()).is_some_and(|prev| prev != json) {
+                    return Err(conflict("idempotency key").into());
+                }
+            }
+            EventPayload::Outcome(data) => {
+                let (Some(parent), json) = (event.parent_id.clone(), serde_json::to_string(data)?) else { continue };
+                if children.insert((parent, data.idempotency_key.clone()), json.clone()).is_some_and(|prev| prev != json) {
+                    return Err(conflict("outcome key").into());
+                }
+            }
+            EventPayload::Supersession { .. } => {}
+        }
+    }
+    for existing in store.events()? {
+        if let EventPayload::Record(data) = &existing.payload
+            && keyed
+                .get(&data.idempotency_key)
+                .is_some_and(|incoming| *incoming != serde_json::to_string(data).unwrap_or_default())
+        {
+            return Err(format!("idempotency key `{}` already exists here with different content", data.idempotency_key).into());
+        }
+    }
     let mut ids: HashMap<EventId, EventId> = HashMap::new();
     for event in events {
         let parent = |ids: &HashMap<EventId, EventId>| {

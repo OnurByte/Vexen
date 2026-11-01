@@ -8,7 +8,15 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 - The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
 - `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
 
-## Unreleased
+## 0.2.4
+
+Findings from a second review pass (test-gap analysis by an EVREN model; each claim was checked against the code, and one was wrong and dropped).
+
+- Secret detection: hyphenated keys such as `sk-proj-...`, `sk-ant-api03-...` and Slack `xoxb-1234-5678-...` are now detected; prefixes must start at a word boundary, so ordinary words like `risk-assessment-...` do not match.
+- `import`: an idempotency key reused with different content, inside the file or against an existing record, is rejected before anything is written (previously the lines before the conflict were already stored).
+- New tests: diff-scoped `check`, option-like refs rejected, `observe` on a signal-killed command, `init` refusing a symlinked `.vexen` (the last two run on Linux and macOS in CI).
+
+Also in this release:
 
 - `benchmarks/memory`: second pilot round (76 runs, 7 tasks) with per-run logging of `vexen_check` calls; results in docs/pilot-results.md.
 - Codex CLI 0.166.0 smoke-tested live on Windows with the official npm package (a real model called `vexen_check`). The registry label for Codex is updated.
