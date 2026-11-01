@@ -188,3 +188,89 @@ fn markdown_export_lists_record_summaries() {
     assert!(output.status.success());
     assert!(stdout(&output).contains("retry loop duplicated a write"));
 }
+
+fn run(args: &[&str], root: &Path) -> (bool, String, String) {
+    let o = vexen(args, root);
+    (
+        o.status.success(),
+        String::from_utf8(o.stdout).unwrap(),
+        String::from_utf8(o.stderr).unwrap(),
+    )
+}
+
+#[test]
+fn record_then_check_surfaces_the_attempt_and_outcome_is_idempotent() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (ok, out, err) = run(
+        &[
+            "record",
+            "--path",
+            "main.rs",
+            "--summary",
+            "retry loop duplicated a write",
+        ],
+        &root,
+    );
+    assert!(ok, "{err}");
+    let value: serde_json::Value = serde_json::from_str(&out).unwrap();
+    let id = value["items"][0]["event_id"].as_str().unwrap().to_owned();
+    // Recording the same thing again is idempotent: same event id.
+    let (_, again, _) = run(
+        &[
+            "record",
+            "--path",
+            "main.rs",
+            "--summary",
+            "retry loop duplicated a write",
+        ],
+        &root,
+    );
+    let again: serde_json::Value = serde_json::from_str(&again).unwrap();
+    assert_eq!(again["items"][0]["event_id"], id.as_str());
+
+    let (ok, _, err) = run(
+        &["outcome", &id, "--test-id", "retry::duplicates", "--exit-code", "1"],
+        &root,
+    );
+    assert!(ok, "{err}");
+    let (_, check, _) = run(&["check", "--path", "main.rs"], &root);
+    let check: serde_json::Value = serde_json::from_str(&check).unwrap();
+    assert_ne!(check["status"], "no_relevant_evidence", "{check}");
+    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 2);
+}
+
+#[test]
+fn record_refuses_secrets_missing_files_and_escapes() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    for (path, summary) in [
+        ("main.rs", "token ghp_abcdefghijklmnopqrstuvwxyz0123456789"),
+        ("nope.rs", "file does not exist"),
+        ("../outside.rs", "path escapes the repo"),
+    ] {
+        let (ok, _, _) = run(&["record", "--path", path, "--summary", summary], &root);
+        assert!(!ok, "{path} should be refused");
+    }
+    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 0);
+}
+
+#[test]
+fn record_can_store_an_accepted_decision() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (ok, out, err) = run(
+        &[
+            "record",
+            "--path",
+            "main.rs",
+            "--kind",
+            "decision",
+            "--summary",
+            "keep one binary, no daemon",
+        ],
+        &root,
+    );
+    assert!(ok, "{err}");
+    assert!(out.contains("accepted_decision"), "{out}");
+}

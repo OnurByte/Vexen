@@ -3,6 +3,7 @@ mod doctor;
 mod export;
 mod import;
 mod init;
+mod record;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use std::{
@@ -58,6 +59,42 @@ enum Cmd {
     Export {
         #[arg(long, value_enum, default_value = "jsonl")]
         format: Format,
+        #[command(flatten)]
+        repo: RepoArg,
+    },
+    /// Save a failed attempt or an accepted decision, anchored to a file.
+    Record {
+        /// Repo-relative file the note is about.
+        #[arg(long)]
+        path: String,
+        /// What was tried and what happened, in plain words (no secrets).
+        #[arg(long)]
+        summary: String,
+        #[arg(long, value_enum, default_value = "attempt")]
+        kind: record::Kind,
+        /// Idempotency key; defaults to a hash of kind, file, content and summary.
+        #[arg(long)]
+        key: Option<String>,
+        /// Condition under which the note applies (repeatable).
+        #[arg(long = "condition")]
+        conditions: Vec<String>,
+        #[command(flatten)]
+        repo: RepoArg,
+    },
+    /// Attach an observed test result (id and exit code only) to a record.
+    Outcome {
+        /// Record id printed by `vexen record`.
+        id: String,
+        #[arg(long)]
+        test_id: String,
+        #[arg(long, allow_hyphen_values = true)]
+        exit_code: i32,
+        /// Idempotency key; defaults to a hash of test id and exit code.
+        #[arg(long)]
+        key: Option<String>,
+        /// SHA-256 of the test output, if you want to keep a fingerprint.
+        #[arg(long)]
+        output_sha256: Option<String>,
         #[command(flatten)]
         repo: RepoArg,
     },
@@ -127,6 +164,22 @@ pub fn main() -> ExitCode {
         Cmd::Explain { id, repo } => check::explain(&repo, id),
         Cmd::Doctor(repo) => return doctor::run(&repo),
         Cmd::Export { format, repo } => export::run(&repo, format),
+        Cmd::Record {
+            path,
+            summary,
+            kind,
+            key,
+            conditions,
+            repo,
+        } => record::record(&repo, path, summary, kind, key, conditions),
+        Cmd::Outcome {
+            id,
+            test_id,
+            exit_code,
+            key,
+            output_sha256,
+            repo,
+        } => record::outcome(&repo, id, test_id, exit_code, key, output_sha256),
         Cmd::Import { file, repo } => import::run(&repo, &file),
     };
     match result {
