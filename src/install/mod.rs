@@ -9,5 +9,5 @@
 mod config;
 mod registry;
 
-pub use config::{Outcome, Request, run, snippet};
+pub use config::{Launch, Outcome, Request, run, snippet};
 pub use registry::{Adapter, Scope, adapters, find};

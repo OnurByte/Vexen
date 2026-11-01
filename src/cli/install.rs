@@ -1,5 +1,5 @@
 use super::RepoArg;
-use crate::install::{Adapter, Outcome, Request, Scope, adapters, find, run};
+use crate::install::{Adapter, Launch, Outcome, Request, Scope, adapters, find, run};
 use std::{path::PathBuf, process::ExitCode};
 
 #[derive(clap::Args)]
@@ -19,9 +19,12 @@ pub struct InstallArgs {
     /// Replace or remove a `vexen` entry that differs from what install writes.
     #[arg(long)]
     force: bool,
-    /// Command clients should launch.
-    #[arg(long, default_value = "vexen")]
+    /// Binary clients should launch (a name on PATH or an absolute path).
+    #[arg(long, default_value = "vexen", conflicts_with = "npx")]
     command: String,
+    /// Have clients start Vexen through `npx @onurbyte/vexen`, for people who never installed the binary.
+    #[arg(long)]
+    npx: bool,
     /// Home directory to use instead of the current user's (mainly for tests).
     #[arg(long)]
     home: Option<PathBuf>,
@@ -57,6 +60,7 @@ fn home_dir(arg: &Option<PathBuf>) -> Result<PathBuf, String> {
 
 fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
     let home = home_dir(&args.home)?;
+    let launch = if args.npx { Launch::npx() } else { Launch::binary(&args.command) };
     let scope = match args.scope {
         ScopeArg::Global => Scope::Global,
         ScopeArg::Project => Scope::Project,
@@ -85,7 +89,7 @@ fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
     let mut failed = false;
     for adapter in chosen {
         if args.print_config {
-            println!("# {} ({})\n{}", adapter.label, adapter.support, crate::install::snippet(adapter, &args.command));
+            println!("# {} ({})\n{}", adapter.label, adapter.support, crate::install::snippet(adapter, &launch));
             continue;
         }
         let outcome = run(&Request {
@@ -93,7 +97,7 @@ fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
             scope,
             home: &home,
             repo: &repo,
-            command: &args.command,
+            launch: &launch,
             dry_run: args.dry_run,
             force: args.force,
             remove,
