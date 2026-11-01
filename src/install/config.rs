@@ -39,16 +39,21 @@ pub fn snippet(adapter: &Adapter, command: &str) -> String {
             "[mcp_servers.{NAME}]\ncommand = {}\nargs = [\"mcp\", \"--stdio\"]\n",
             serde_json::to_string(command).unwrap_or_default()
         ),
-        Shape::JsonOpenCode => pretty(&json!({"mcp": {NAME: entry(adapter, command)}})),
-        Shape::JsonServers { key, .. } => pretty(&json!({key: {NAME: entry(adapter, command)}})),
+        Shape::JsonOpenCode => pretty(&json!({"mcp": {"servers": {NAME: entry(adapter, command, true)}}})),
+        Shape::JsonServers { key, .. } => pretty(&json!({key: {NAME: entry(adapter, command, false)}})),
         Shape::PrintOnly => pretty(&json!({NAME: {"command": command, "args": ["mcp", "--stdio"]}})),
     }
 }
 
-fn entry(adapter: &Adapter, command: &str) -> Value {
+/// `nested` is OpenCode's current `mcp.servers.<name>` layout; the older
+/// `mcp.<name>` layout also carries `enabled`.
+fn entry(adapter: &Adapter, command: &str, nested: bool) -> Value {
     match adapter.shape {
         Shape::JsonServers { typed: true, .. } => {
             json!({"type": "stdio", "command": command, "args": ["mcp", "--stdio"]})
+        }
+        Shape::JsonOpenCode if nested => {
+            json!({"type": "local", "command": [command, "mcp", "--stdio"]})
         }
         Shape::JsonOpenCode => {
             json!({"type": "local", "command": [command, "mcp", "--stdio"], "enabled": true})
@@ -133,10 +138,18 @@ fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
         Shape::JsonServers { key, .. } => key,
         _ => unreachable!("caller filters other shapes"),
     };
-    let wanted = entry(req.adapter, req.command);
-    let servers = if req.remove {
+    // OpenCode: use the current `mcp.servers` layout unless the file already
+    // holds entries in the older `mcp.<name>` layout, which is then kept.
+    let nested = matches!(req.adapter.shape, Shape::JsonOpenCode)
+        && match top.get(key) {
+            Some(Value::Object(m)) => m.contains_key("servers") || m.keys().all(|k| k == "timeout"),
+            _ => true,
+        };
+    let wanted = entry(req.adapter, req.command, nested);
+    let unchanged = || Ok((existing.unwrap_or_default().to_owned(), false));
+    let container = if req.remove {
         match top.get_mut(key) {
-            None => return Ok((existing.unwrap_or_default().to_owned(), false)),
+            None => return unchanged(),
             Some(Value::Object(m)) => m,
             Some(_) => return Err(format!("`{key}` is not an object, left untouched")),
         }
@@ -145,6 +158,22 @@ fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
             Value::Object(m) => m,
             _ => return Err(format!("`{key}` is not an object, left untouched")),
         }
+    };
+    let servers = if nested {
+        if req.remove {
+            match container.get_mut("servers") {
+                None => return unchanged(),
+                Some(Value::Object(m)) => m,
+                Some(_) => return Err("`mcp.servers` is not an object, left untouched".into()),
+            }
+        } else {
+            match container.entry("servers").or_insert_with(|| Value::Object(Map::new())) {
+                Value::Object(m) => m,
+                _ => return Err("`mcp.servers` is not an object, left untouched".into()),
+            }
+        }
+    } else {
+        container
     };
     let changed = apply(servers.get(NAME), &wanted, req)?;
     if !changed {

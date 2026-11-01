@@ -2,6 +2,11 @@
 
 Vexen is in early development. Versions below 1.0 may change behavior between releases.
 
+## Unreleased
+
+- `benchmarks/memory`: paired memory-on/off pilot harness with a real agent, and its first results (docs/pilot-results.md). Small and toy-sized; no general effect is claimed.
+- Fix: the OpenCode adapter wrote the legacy `mcp.<name>` layout. OpenCode 2.x's own `opencode mcp add` writes `mcp.servers.<name>`, so that is now the default; a file that already uses the legacy layout keeps it. Found by comparing with the client's own writer. A live model call through OpenCode was not possible (no API key for its configured provider), so OpenCode stays `config-tested`.
+
 ## 0.2.2
 
 - Fix: on Windows the MCP tools rejected an ordinary `C:\...` `repo_root` ("must be canonical"); the ordinary spelling of the same directory is now accepted. Found by running a real client against the release.
