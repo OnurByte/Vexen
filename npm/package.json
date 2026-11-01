@@ -1,0 +1,27 @@
+{
+  "name": "@onurbyte/vexen",
+  "version": "0.1.0",
+  "description": "Bootstrap for Vexen: downloads and runs the checksummed Vexen binary for your platform.",
+  "license": "GPL-3.0-or-later",
+  "bin": {
+    "vexen": "bin/vexen.js"
+  },
+  "files": [
+    "bin/vexen.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnurByte/Vexen.git",
+    "directory": "npm"
+  },
+  "keywords": [
+    "mcp",
+    "coding-agents",
+    "memory",
+    "local-first"
+  ]
+}

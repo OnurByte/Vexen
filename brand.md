@@ -18,7 +18,16 @@ Avoid promises that Vexen prevents bugs, improves agent success, knows what file
 - **Accent:** violet `#be95ff`; use sparingly for a stored note, qualification, or secondary signal.
 - Keep contrast high and layouts calm. Use generous spacing, simple shapes, and labeled explanations in nearby page text. Avoid dashboards, glowing gradients as decoration, and fake product screenshots.
 
-The mark is an original paired-path V: two evidence paths converge and move forward. Do not use Vercel's mark or imply affiliation. The README illustrations are schematic, not application screenshots or measured results.
+The mark is [`icon.svg`](icon.svg): four contours that converge into a forward-pointing V, in near-white `#f2f4f8` and Oxocarbon blue `#78a9ff` on a transparent background. It is the single logo for the README, banners, docs, and package pages; do not redraw or recolor it ad hoc. Do not use Vercel's mark or imply affiliation. The README illustrations are schematic, not application screenshots or measured results.
+
+## Logo files
+
+- [`icon.svg`](icon.svg): canonical mark for dark surfaces (`#161616` and darker).
+- [`icon-light.svg`](icon-light.svg): same geometry in `#161616` and `#0f62fe` for light surfaces. The README switches between them with `<picture>`.
+- [`docs/assets/banner.svg`](docs/assets/banner.svg): 1280×640 mark, wordmark, and tagline; use it for the GitHub social preview (upload it as a PNG in repository settings).
+- [`docs/assets/hero.svg`](docs/assets/hero.svg): README hero; embeds the mark from `icon.svg`.
+
+Keep clear space around the mark of at least a quarter of its width and do not render it below 24 px wide. Cyan and violet remain diagram signal colors, not part of the mark.
 
 ## Type
 

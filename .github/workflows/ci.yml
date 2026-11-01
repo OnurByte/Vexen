@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [implementation]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Configure git identity for fixtures
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name CI
+      - name: Test
+        shell: bash
+        run: |
+          # control_separator needs a control character in a file name, which
+          # Windows cannot create; tracked as a known gap, not hidden.
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cargo test --all-targets -- --skip control_separator_in_path
+          else
+            cargo test --all-targets
+          fi

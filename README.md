@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="icon.svg" width="84" height="84" alt="Vexen mark: two cyan and violet strokes meet in a forward-pointing V." />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="icon.svg">
+    <img src="icon-light.svg" width="84" height="78" alt="Vexen mark: two white and two blue paths converge into a forward-pointing V." />
+  </picture>
 </p>
 
 <h1 align="center">Vexen — give your next coding agent a head start</h1>
@@ -53,6 +56,10 @@ cargo install --git https://github.com/OnurByte/Vexen --locked
 ```
 
 This command is a plan, not a working installation today. No crates.io package or release binary is claimed.
+
+### npx bootstrap (planned)
+
+A small Node wrapper lives in [`npm/`](npm/). Once a tagged release publishes platform binaries and the package is published, `npx @onurbyte/vexen <command>` will download the matching binary, verify its SHA-256 checksum, cache it, and run it. It needs Node 18+ only for this bootstrap step. No npm package or release binary exists yet, so this does not work today. See [`npm/README.md`](npm/README.md).
 
 ## Privacy and scope
 
