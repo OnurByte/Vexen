@@ -13,13 +13,13 @@ The public story should stay evidence-led. The ten-repository Task 1 evaluation 
 - `icon.svg`: original V mark using the brief's paired evidence paths.
 - `docs/assets/hero.svg`: schematic repo-to-evidence-to-next-session illustration.
 - `docs/assets/workflow.svg`: failed attempt → local evidence → qualified reminder sequence.
-- `docs/assets/example.svg`: deliberately unlabeled fictional reminder card; its alt text explicitly states that it is illustrative.
+- `docs/assets/example.svg`: a fictional reminder card labeled “ILLUSTRATIVE · FICTIONAL,” with sample source, test, and commit fields and an explicit current-code qualification.
 
-All SVG wording is in accessible `<title>`/`<desc>` metadata and adjacent README alt text. The assets use vector geometry rather than rendered interface captures; no generated image or implied live product screenshot is present.
+All visible diagram lettering is outlined from Geist / Geist Mono so the SVGs render without a local font installation. The SVGs retain accessible `<title>`/`<desc>` metadata and the README provides meaningful alt text. The assets use vector geometry rather than rendered interface captures; no product screenshot or measured result is implied.
 
 ## Provenance
 
-- **Geist / Geist Mono:** requested type direction from [Vercel's Geist page](https://vercel.com/font); source repository and SIL Open Font License notices are at [vercel/geist-font](https://github.com/vercel/geist-font). Fonts are referenced as brand guidance, not copied into the package. Vexen is not a Vercel product and no endorsement is implied.
+- **Geist / Geist Mono:** requested type direction from [Vercel's Geist page](https://vercel.com/font); source repository and SIL Open Font License notices are at [vercel/geist-font](https://github.com/vercel/geist-font). The official regular, semibold, and mono OTF files and OFL text are included under `docs/assets/fonts/`; the SVG text was outlined with FontTools. Vexen is not a Vercel product and no endorsement is implied.
 - **Oxocarbon:** requested palette inspiration from [nyoom-engineering/oxocarbon](https://github.com/nyoom-engineering/oxocarbon). The selected hex values follow the user-provided brief. The logo, diagrams, and composition are original Vexen assets, not copied theme artwork.
 - **Product claims:** repository `docs/specification.md`, `docs/benchmarks.md`, task reports, and `docs/progress.md` as present at package preparation. Claims are limited to the current source and recorded evaluation; plans are labeled as plans.
 

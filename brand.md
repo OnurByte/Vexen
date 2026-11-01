@@ -22,7 +22,7 @@ The mark is an original paired-path V: two evidence paths converge and move forw
 
 ## Type
 
-Use [Geist](https://vercel.com/font) for headings and body text, and Geist Mono for commands and identifiers. The typeface is published in the [Vercel Geist Font repository](https://github.com/vercel/geist-font) under the SIL Open Font License; consult that repository's current license and notices before redistributing font files. Vexen is independent and is not endorsed by Vercel. For vector diagrams, convert any display lettering to paths or retain accessible adjacent text so rendering does not depend on a reader having Geist installed.
+Use [Geist](https://vercel.com/font) for headings and body text, and Geist Mono for commands and identifiers. This package includes the official regular, semibold, and mono OTF files under `docs/assets/fonts/`, together with the repository's SIL Open Font License text. The diagram lettering is outlined from Geist with FontTools so it renders consistently without a local font install; each SVG also has accessible title and description text. Source and license notices are in the [Vercel Geist Font repository](https://github.com/vercel/geist-font). Vexen is independent and is not endorsed by Vercel.
 
 ## Message examples
 
