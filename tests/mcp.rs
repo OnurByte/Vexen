@@ -229,3 +229,40 @@ async fn legacy_initialize_lifecycle_rejects_non_absolute_root_truthfully() {
     assert_eq!(result.is_error, Some(true));
     task.abort();
 }
+
+/// On Windows `fs::canonicalize` returns a `\?\C:\...` path. Agents pass the
+/// ordinary `C:\...` form, which must be accepted for the same directory.
+#[cfg(windows)]
+#[tokio::test]
+async fn accepts_an_ordinary_windows_path_for_repo_root() {
+    let (_repo, root) = repository();
+    let plain = root.strip_prefix(r"\\?\").expect("verbatim root").to_owned();
+    let (mut client, task) = start().await;
+    client.send(message(r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"vexen-test","version":"1"},"io.modelcontextprotocol/clientCapabilities":{}}}}"#)).await.unwrap();
+    let _ = receive(&mut client).await;
+    let ServerResult::CallToolResult(result) = call_check(&mut client, &plain, 2).await else {
+        panic!("expected check response")
+    };
+    assert_ne!(result.is_error, Some(true), "{:?}", result.content);
+    assert_eq!(result.structured_content.unwrap()["status"], "no_relevant_evidence");
+    drop(client);
+    let _ = task.await;
+}
+
+/// Claude Code warns on JSON Schema formats it does not know, such as the
+/// `uint32` that schemars emits for unsigned integers. Keep to portable ones.
+#[tokio::test]
+async fn tool_schemas_use_only_portable_integer_formats() {
+    let (_repo, _root) = repository();
+    let (mut client, task) = start().await;
+    client.send(message(r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"vexen-test","version":"1"},"io.modelcontextprotocol/clientCapabilities":{}}}}"#)).await.unwrap();
+    let _ = receive(&mut client).await;
+    client.send(message(r#"{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"vexen-test","version":"1"},"io.modelcontextprotocol/clientCapabilities":{}}}}"#)).await.unwrap();
+    let ServerResult::ListToolsResult(list) = receive(&mut client).await else {
+        panic!("expected tools/list")
+    };
+    let json = serde_json::to_string(&list.tools).unwrap();
+    assert!(!json.contains("\"uint"), "unsigned formats in schemas: {json}");
+    drop(client);
+    let _ = task.await;
+}
