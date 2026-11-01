@@ -2,7 +2,7 @@
 
 Bootstrap for [Vexen](https://github.com/OnurByte/Vexen), local evidence-based memory for coding agents.
 
-> **Status: not published.** No npm package and no release binary exist yet. This directory is the wrapper that will ship with the first tagged release. Until then, build from source: `cargo install --git https://github.com/OnurByte/Vexen --locked`.
+> **Status: not published to npm yet.** Release binaries for v0.1.0 exist on GitHub and the wrapper was verified against them on Windows, but the package itself is not on npm. Until then, download from the Releases page or build from source: `cargo install --git https://github.com/OnurByte/Vexen --locked`.
 
 ## What it does
 
