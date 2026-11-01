@@ -44,7 +44,7 @@ Per task:
 
 - **An applicable note changed the outcome.** On tasks with a hidden requirement the agent passed 2 of 20 times without memory and 11 of 20 with an applicable note; the intervals do not overlap.
 - **It is the note, not the extra sentence or the tool.** The `stale` runs carry the same sentence and the same server, every one of them called `vexen_check`, and it returned no evidence; they passed 0 of 20.
-- **No negative transfer here.** Where Vexen had nothing to say or nothing relevant (`stale`, and both controls), results did not get worse; the controls passed 8 of 8 either way. Vexen runs cost about two to three more agent turns and, at Haiku prices, a fraction of a cent.
+- **No negative transfer here.** Where Vexen had nothing to say or nothing relevant (`stale`, and both controls), results did not get worse; the controls passed 8 of 8 either way. Vexen runs used about one to three more agent turns and, at Haiku prices, a fraction of a cent.
 - **Even with the note, 9 of 20 runs still failed.** The agent received the note and did not always apply it; this tool does not make a model follow evidence.
 
 ### What it does not show
