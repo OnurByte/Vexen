@@ -1,6 +1,6 @@
 # Task 1 report: Git history and co-change
 
-**Status: DONE_WITH_CONCERNS.** The Task 1 implementation and fixture suite are committed. The predictive gate is unresolved until the current chronological run over the frozen public repositories completes. This report does not claim predictive success or authorize later tasks.
+**Status: DONE_WITH_CONCERNS.** The Task 1 implementation, fixture suite and frozen evaluation are complete. The predictive gate for default co-change hints failed: thresholded co-change had lower Hit@3 than plain historical co-change counts in all ten repositories. Keep co-change research-only with no default hints and make no release efficacy claim. Per the user's direction, continue the remaining product scope independently.
 
 ## Delivered
 
@@ -35,6 +35,8 @@ The twelve integration fixtures cover ordinary commits and evidence, rename chai
 
 ## Benchmark status and limitations
 
-The frozen ten-repository corpus run is being performed by the parent agent after this correction. Results were not available when this report was updated; therefore it has no predictive accuracy results and no comparison-based gate decision. The runner itself had an initial invocation failure because Git rejects `usize::MAX` as `--max-count`; the history limit is now bounded to Git's supported integer range. A corpus run also exposed a non-UTF-8 path. The implementation now skips/counts the entire affected transaction rather than failing the full corpus or dropping only the offending path.
+The corrected evaluation used the ten frozen sources and revision `53f7b5af14f9c15bd15b0dd84845645585bde229`; portable aggregate and per-query outputs are under `benchmarks/cochange/results/`. Across 1,874 queries, thresholded co-change Hit@3 was 0.3511 versus 0.4274 for plain counts, and coverage was 0.7327 versus 0.9856. Thresholded emitted precision was higher (0.2438 vs 0.1624) and false-advisory rate lower (0.7562 vs 0.8376), but Hit@3 was lower in every repository, so the default-hint gate failed. See [the complete results](benchmarks.md).
 
-The benchmark uses one committer-time chronological split and fixed thresholds, without duplicate-patch purge windows, validation-based tuning, confidence intervals, multi-seed sensitivity, rename-only slice reporting, or human/task relevance labels. Repositories are not independent experiments, and a co-change target is not a necessity label. Synthetic fixtures establish mechanics only. Do not ship default hints or claim agent improvement unless the frozen real-repository results materially beat both simple baselines with acceptable coverage and false-advisory rate; matched agent outcome evaluation remains future work.
+The runner initially failed because Git rejects `usize::MAX` as `--max-count`; the history limit is now bounded to Git's supported integer range. Corpus analysis encountered non-UTF-8 paths; the implementation skips/counts whole affected transactions rather than failing the run or dropping only the offending path.
+
+The benchmark uses one committer-time chronological split and fixed thresholds, without duplicate-patch purge windows, validation-based tuning, confidence intervals, multi-seed sensitivity, rename-only slice reporting, or human/task relevance labels. Repositories are not independent experiments, and a co-change target is not a necessity label. Synthetic fixtures establish mechanics only. The observed file retrieval metrics do not measure agent utility; matched agent outcome evaluation remains future work.

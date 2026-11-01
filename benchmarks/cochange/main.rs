@@ -8,7 +8,7 @@ use vexen::{
     analysis::cochange::recommend_related,
     analysis::json::escape_json_string,
     git::{
-        history::{HistoryIndex, analyze_history},
+        history::{analyze_history, HistoryIndex},
         identity::RepoPath,
     },
 };
@@ -150,7 +150,15 @@ fn run() -> Result<(), String> {
     // `cargo bench` adds this cargo-only switch after user arguments.
     let args: Vec<_> = env::args().skip(1).filter(|s| s != "--bench").collect();
     if args.is_empty() {
-        return Err("usage: cargo bench --bench cochange -- <repository> [train_fraction] [--per-query <jsonl-path>]".into());
+        eprintln!("no repository supplied; benchmark not executed");
+        return Ok(());
+    }
+    if args
+        .first()
+        .is_some_and(|arg| arg == "--help" || arg == "-h")
+    {
+        println!("usage: cargo bench --bench cochange -- <repository> [train_fraction] [--per-query <jsonl-path>]");
+        return Ok(());
     }
     let fraction = args
         .get(1)

@@ -17,5 +17,10 @@ Preflight:
 | 4,5,8 | Protocol/CLI/packaging | official SDK/version availability needs verification |
 | 5,6,8 | Install/init/docs | only explicit installation writes outside repo |
 | 6,8 | Compatibility labels | fixture tests do not imply live tests |
-Ruling: Begin Task 1 only; chronological real-repository evaluation must justify proceeding. Synthetic fixtures verify mechanics only. External validation remains an honest gate.
-Task 1: in progress.
+Original plan: evaluate Task 1 before proceeding to later scope; synthetic fixtures verify mechanics only. The user later directed continuation of the remaining product scope despite the failed co-change gate.
+Task 1 implementation complete in commits d3fd909 and 53f7b5a. The corrected frozen corpus run is recorded in `docs/benchmarks.md` and `benchmarks/cochange/results/`.
+
+Evaluation ruling: thresholded co-change Hit@3 was below plain historical co-change counts on all ten repositories. Co-change remains research-only and no default hints or release efficacy claim are approved. Per the user's direction, continue the remaining product scope independently of this failed co-change gate.
+
+Ruling: User explicitly directed continuing to finish after the failed gate. Keep historical cochange out of default advice; continue memory/MCP/CLI/installer scope. Do not claim predictive superiority, stable live compatibility, or agent outcome uplift. Cost if wrong: memory-first positioning may require revision, but no unvalidated default hints are exposed.
+Task 1: fix round 1/5 all five findings addressed, commits d3fd909..53f7b5a; corpus completed all10, no Hit@3 superiority to plain counts.

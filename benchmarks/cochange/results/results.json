@@ -1,0 +1,579 @@
+{
+  "schema_version": 1,
+  "generated_utc_date": "2026-11-01",
+  "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+  "inputs_manifest": "docs/evaluation-inputs.json",
+  "split": "committer timestamp; equal timestamps grouped; each held-out transaction trained with strictly earlier timestamps",
+  "results": [
+    {
+      "repo": "bat",
+      "source": "https://github.com/sharkdp/bat.git",
+      "source_head": "e95c32b6f0c31eae638e492f9cc58a075b0e9950",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 13.48545075400034,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "bat",
+        "transactions": 3476,
+        "skipped_non_utf8_transactions": 2,
+        "skipped_ambiguous_identity_transactions": 122,
+        "train_transactions_at_cutoff": 2683,
+        "test_transactions_at_cutoff": 696,
+        "training_cutoff_committer_time": 1717211901,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 13481,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.320896,
+            "precision_at_3": 0.106965,
+            "emitted_precision": 0.494253,
+            "coverage": 0.481343,
+            "false_advisory_rate": 0.505747,
+            "queries": 268,
+            "emitted": 174,
+            "false_hints": 88
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.458955,
+            "precision_at_3": 0.156716,
+            "emitted_precision": 0.159696,
+            "coverage": 0.981343,
+            "false_advisory_rate": 0.840304,
+            "queries": 268,
+            "emitted": 789,
+            "false_hints": 663
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.014925,
+            "precision_at_3": 0.004975,
+            "emitted_precision": 0.007168,
+            "coverage": 0.996269,
+            "false_advisory_rate": 0.992832,
+            "queries": 268,
+            "emitted": 558,
+            "false_hints": 554
+          }
+        },
+        "source_head": "e95c32b6f0c31eae638e492f9cc58a075b0e9950",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "delta",
+      "source": "https://github.com/dandavison/delta.git",
+      "source_head": "3c2269c6b845913965575f11b0196d70ef5352f3",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 3.1458172620041296,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "delta",
+        "transactions": 2099,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 43,
+        "train_transactions_at_cutoff": 1651,
+        "test_transactions_at_cutoff": 421,
+        "training_cutoff_committer_time": 1642292844,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 3142,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.394737,
+            "precision_at_3": 0.131579,
+            "emitted_precision": 0.283019,
+            "coverage": 0.715789,
+            "false_advisory_rate": 0.716981,
+            "queries": 190,
+            "emitted": 265,
+            "false_hints": 190
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.452632,
+            "precision_at_3": 0.15614,
+            "emitted_precision": 0.161818,
+            "coverage": 0.978947,
+            "false_advisory_rate": 0.838182,
+            "queries": 190,
+            "emitted": 550,
+            "false_hints": 461
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.042105,
+            "precision_at_3": 0.015789,
+            "emitted_precision": 0.020225,
+            "coverage": 0.994737,
+            "false_advisory_rate": 0.979775,
+            "queries": 190,
+            "emitted": 445,
+            "false_hints": 436
+          }
+        },
+        "source_head": "3c2269c6b845913965575f11b0196d70ef5352f3",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "fd",
+      "source": "https://github.com/sharkdp/fd.git",
+      "source_head": "cc4e40fa4e32d61733cd72926e233a3fb6c8d56d",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 0.9780498370091664,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "fd",
+        "transactions": 1640,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 38,
+        "train_transactions_at_cutoff": 1277,
+        "test_transactions_at_cutoff": 328,
+        "training_cutoff_committer_time": 1722534331,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 974,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.666667,
+            "precision_at_3": 0.226852,
+            "emitted_precision": 0.604938,
+            "coverage": 0.833333,
+            "false_advisory_rate": 0.395062,
+            "queries": 144,
+            "emitted": 162,
+            "false_hints": 64
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.736111,
+            "precision_at_3": 0.261574,
+            "emitted_precision": 0.272947,
+            "coverage": 0.986111,
+            "false_advisory_rate": 0.727053,
+            "queries": 144,
+            "emitted": 414,
+            "false_hints": 301
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.041667,
+            "precision_at_3": 0.013889,
+            "emitted_precision": 0.034884,
+            "coverage": 0.979167,
+            "false_advisory_rate": 0.965116,
+            "queries": 144,
+            "emitted": 172,
+            "false_hints": 166
+          }
+        },
+        "source_head": "cc4e40fa4e32d61733cd72926e233a3fb6c8d56d",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "fzf",
+      "source": "https://github.com/junegunn/fzf.git",
+      "source_head": "26ff936df038b6a62ec42cf18db27b2ea2bb8ec3",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 10.451966756998445,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "fzf",
+        "transactions": 3651,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 8,
+        "train_transactions_at_cutoff": 2920,
+        "test_transactions_at_cutoff": 731,
+        "training_cutoff_committer_time": 1736044420,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 10448,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.460106,
+            "precision_at_3": 0.172872,
+            "emitted_precision": 0.223368,
+            "coverage": 0.93617,
+            "false_advisory_rate": 0.776632,
+            "queries": 376,
+            "emitted": 873,
+            "false_hints": 678
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.486702,
+            "precision_at_3": 0.182624,
+            "emitted_precision": 0.201763,
+            "coverage": 0.99734,
+            "false_advisory_rate": 0.798237,
+            "queries": 376,
+            "emitted": 1021,
+            "false_hints": 815
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.06383,
+            "precision_at_3": 0.027482,
+            "emitted_precision": 0.066524,
+            "coverage": 0.731383,
+            "false_advisory_rate": 0.933476,
+            "queries": 376,
+            "emitted": 466,
+            "false_hints": 435
+          }
+        },
+        "source_head": "26ff936df038b6a62ec42cf18db27b2ea2bb8ec3",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "hyperfine",
+      "source": "https://github.com/sharkdp/hyperfine.git",
+      "source_head": "c5161524980522320c7d3425e714cc0965a869a5",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 0.9024350920080906,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "hyperfine",
+        "transactions": 1168,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 4,
+        "train_transactions_at_cutoff": 934,
+        "test_transactions_at_cutoff": 234,
+        "training_cutoff_committer_time": 1710275560,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 899,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.4,
+            "precision_at_3": 0.138667,
+            "emitted_precision": 0.246445,
+            "coverage": 0.72,
+            "false_advisory_rate": 0.753555,
+            "queries": 125,
+            "emitted": 211,
+            "false_hints": 159
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.496,
+            "precision_at_3": 0.202667,
+            "emitted_precision": 0.204852,
+            "coverage": 1.0,
+            "false_advisory_rate": 0.795148,
+            "queries": 125,
+            "emitted": 371,
+            "false_hints": 295
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.096,
+            "precision_at_3": 0.037333,
+            "emitted_precision": 0.045161,
+            "coverage": 0.992,
+            "false_advisory_rate": 0.954839,
+            "queries": 125,
+            "emitted": 310,
+            "false_hints": 296
+          }
+        },
+        "source_head": "c5161524980522320c7d3425e714cc0965a869a5",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "jq",
+      "source": "https://github.com/jqlang/jq.git",
+      "source_head": "992db9b7e5e3059b764bf430bd97716829e99578",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 2.4163010290067177,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "jq",
+        "transactions": 1877,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 24,
+        "train_transactions_at_cutoff": 1477,
+        "test_transactions_at_cutoff": 376,
+        "training_cutoff_committer_time": 1694776147,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 2413,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.458763,
+            "precision_at_3": 0.166667,
+            "emitted_precision": 0.343972,
+            "coverage": 0.809278,
+            "false_advisory_rate": 0.656028,
+            "queries": 194,
+            "emitted": 282,
+            "false_hints": 185
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.57732,
+            "precision_at_3": 0.221649,
+            "emitted_precision": 0.226316,
+            "coverage": 0.979381,
+            "false_advisory_rate": 0.773684,
+            "queries": 194,
+            "emitted": 570,
+            "false_hints": 441
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.020619,
+            "precision_at_3": 0.006873,
+            "emitted_precision": 0.007463,
+            "coverage": 0.984536,
+            "false_advisory_rate": 0.992537,
+            "queries": 194,
+            "emitted": 536,
+            "false_hints": 532
+          }
+        },
+        "source_head": "992db9b7e5e3059b764bf430bd97716829e99578",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "just",
+      "source": "https://github.com/casey/just.git",
+      "source_head": "c7317c85c21ebd83ea4bb8de26f8afec44c7e597",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 31.353809439999168,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "just",
+        "transactions": 1955,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 828,
+        "train_transactions_at_cutoff": 879,
+        "test_transactions_at_cutoff": 391,
+        "training_cutoff_committer_time": 1774313850,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 31351,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.160377,
+            "precision_at_3": 0.058176,
+            "emitted_precision": 0.068901,
+            "coverage": 0.90566,
+            "false_advisory_rate": 0.931099,
+            "queries": 212,
+            "emitted": 537,
+            "false_hints": 500
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.165094,
+            "precision_at_3": 0.061321,
+            "emitted_precision": 0.064356,
+            "coverage": 0.976415,
+            "false_advisory_rate": 0.935644,
+            "queries": 212,
+            "emitted": 606,
+            "false_hints": 567
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.061321,
+            "precision_at_3": 0.02044,
+            "emitted_precision": 0.029545,
+            "coverage": 1.0,
+            "false_advisory_rate": 0.970455,
+            "queries": 212,
+            "emitted": 440,
+            "false_hints": 427
+          }
+        },
+        "source_head": "c7317c85c21ebd83ea4bb8de26f8afec44c7e597",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "ripgrep",
+      "source": "https://github.com/BurntSushi/ripgrep.git",
+      "source_head": "91f5d22ef48bde459d90a8c7dbeab416e97d0f2b",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 22.407002327992814,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "ripgrep",
+        "transactions": 2225,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 49,
+        "train_transactions_at_cutoff": 1722,
+        "test_transactions_at_cutoff": 454,
+        "training_cutoff_committer_time": 1696897792,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 22404,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.165919,
+            "precision_at_3": 0.055306,
+            "emitted_precision": 0.161572,
+            "coverage": 0.64574,
+            "false_advisory_rate": 0.838428,
+            "queries": 223,
+            "emitted": 229,
+            "false_hints": 192
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.29148,
+            "precision_at_3": 0.100149,
+            "emitted_precision": 0.102603,
+            "coverage": 0.982063,
+            "false_advisory_rate": 0.897397,
+            "queries": 223,
+            "emitted": 653,
+            "false_hints": 586
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.076233,
+            "precision_at_3": 0.03139,
+            "emitted_precision": 0.0394,
+            "coverage": 0.986547,
+            "false_advisory_rate": 0.9606,
+            "queries": 223,
+            "emitted": 533,
+            "false_hints": 512
+          }
+        },
+        "source_head": "91f5d22ef48bde459d90a8c7dbeab416e97d0f2b",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "tokei",
+      "source": "https://github.com/XAMPPRocky/tokei.git",
+      "source_head": "c14f744716272fadeb27a74443cdffa0af35f82f",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 9.869135643006302,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "tokei",
+        "transactions": 1079,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 327,
+        "train_transactions_at_cutoff": 566,
+        "test_transactions_at_cutoff": 216,
+        "training_cutoff_committer_time": 1632460039,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 9867,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.032967,
+            "precision_at_3": 0.010989,
+            "emitted_precision": 0.136364,
+            "coverage": 0.087912,
+            "false_advisory_rate": 0.863636,
+            "queries": 91,
+            "emitted": 22,
+            "false_hints": 19
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.131868,
+            "precision_at_3": 0.047619,
+            "emitted_precision": 0.049618,
+            "coverage": 0.978022,
+            "false_advisory_rate": 0.950382,
+            "queries": 91,
+            "emitted": 262,
+            "false_hints": 249
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.043956,
+            "precision_at_3": 0.014652,
+            "emitted_precision": 0.022472,
+            "coverage": 0.989011,
+            "false_advisory_rate": 0.977528,
+            "queries": 91,
+            "emitted": 178,
+            "false_hints": 174
+          }
+        },
+        "source_head": "c14f744716272fadeb27a74443cdffa0af35f82f",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    },
+    {
+      "repo": "zoxide",
+      "source": "https://github.com/ajeetdsouza/zoxide.git",
+      "source_head": "f0b31631d295b0623bc440016ed0aba3c7c49dde",
+      "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229",
+      "seconds": 17.330427139007952,
+      "exit_code": 0,
+      "result": {
+        "schema_version": 1,
+        "repo": "zoxide",
+        "transactions": 641,
+        "skipped_non_utf8_transactions": 0,
+        "skipped_ambiguous_identity_transactions": 60,
+        "train_transactions_at_cutoff": 455,
+        "test_transactions_at_cutoff": 129,
+        "training_cutoff_committer_time": 1740594996,
+        "train_fraction_target": 0.8,
+        "split_rule": "equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction",
+        "query_rule": "lexicographically first ceil(half) of changed paths; predict the remainder",
+        "false_advisory_denominator": "all emitted suggestions across evaluated queries",
+        "latency_ms": 17328,
+        "baselines": {
+          "thresholded_cochange": {
+            "hit_at_3": 0.294118,
+            "precision_at_3": 0.098039,
+            "emitted_precision": 0.15625,
+            "coverage": 0.882353,
+            "false_advisory_rate": 0.84375,
+            "queries": 51,
+            "emitted": 96,
+            "false_hints": 81
+          },
+          "plain_cochange_count": {
+            "hit_at_3": 0.333333,
+            "precision_at_3": 0.111111,
+            "emitted_precision": 0.111111,
+            "coverage": 1.0,
+            "false_advisory_rate": 0.888889,
+            "queries": 51,
+            "emitted": 153,
+            "false_hints": 136
+          },
+          "basename_proximity": {
+            "hit_at_3": 0.019608,
+            "precision_at_3": 0.013072,
+            "emitted_precision": 0.020408,
+            "coverage": 0.803922,
+            "false_advisory_rate": 0.979592,
+            "queries": 51,
+            "emitted": 98,
+            "false_hints": 96
+          }
+        },
+        "source_head": "f0b31631d295b0623bc440016ed0aba3c7c49dde",
+        "benchmark_revision": "53f7b5af14f9c15bd15b0dd84845645585bde229"
+      }
+    }
+  ]
+}
