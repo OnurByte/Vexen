@@ -2,6 +2,12 @@
 
 Vexen is in early development. Versions below 1.0 may change behavior between releases.
 
+## Versioning
+
+- Releases are patch bumps by default. A minor or major bump needs `Release-Bump: minor` or `Release-Bump: major` on the tagged commit; the release workflow rejects skipped or accidental jumps.
+- The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
+- `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
+
 ## 0.2.3
 
 Hardening from an independent multi-model review; every finding was verified against the code first.
