@@ -72,7 +72,7 @@ vexen install --scope global --dry-run
 vexen install --scope global
 ```
 
-It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. The file formats are covered by tests; no client has been smoke-tested live yet.
+It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. The file formats are covered by tests. Claude Code (2.1.309, Windows) has been checked live: it launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
 
 **Use it from an agent.** `vexen mcp --stdio` serves four MCP tools (`vexen_check`, `vexen_record`, `vexen_outcome`, `vexen_explain`). Point any MCP client at it, for example:
 
@@ -92,15 +92,15 @@ Without MCP, agents save notes with `vexen record --path <file> --summary "<what
 
 **No Rust?** Prebuilt binaries with SHA-256 checksums for Windows, Linux (x64, arm64) and macOS (x64, arm64) are on the [Releases page](https://github.com/OnurByte/Vexen/releases). They are early builds and have not been tested with live agent clients.
 
-**Coming: `npx`.** The launcher in [`npm/`](npm/) downloads and verifies those same binaries, so `npx @onurbyte/vexen init` will work without Rust. It is tested against the real release but not published to npm yet; see [`npm/README.md`](npm/README.md).
+**`npx`, no install.** `npx @onurbyte/vexen init` works without Rust: a small launcher in [`npm/`](npm/) downloads the checksummed binary for your platform on first run, verifies it, and runs it. For an MCP client use `{ "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }`. See [`npm/README.md`](npm/README.md).
 
 ## Where Vexen stands
 
-<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, installer for eight agents, test-result capture, Git-history analysis for research. Next: publish the npx launcher, live client smoke tests, signed binaries. Later: paired agent evaluation, published negative results." /></p>
+<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, installer for eight agents, test-result capture, npx launcher on npm, Git-history analysis for research. Next: live smoke tests with more clients, signed release binaries, Windows and macOS test fixtures. Later: paired agent evaluation, published negative results." /></p>
 
 We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
 
-Vexen has not been smoke-tested with live coding-agent clients yet, and no agent-outcome improvement is claimed.
+Only Claude Code has been smoke-tested live, once, on Windows. No agent-outcome improvement is claimed.
 
 ## Privacy
 

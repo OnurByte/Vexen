@@ -177,6 +177,15 @@ fn validate_record(root: &Path, event: &NewEvent) -> Result<()> {
     Ok(())
 }
 
+/// Drop the Windows `\\?\` prefix from a drive-letter path; other paths are returned as is.
+fn strip_verbatim(path: &Path) -> PathBuf {
+    let text = path.to_string_lossy();
+    match text.strip_prefix(r"\\?\") {
+        Some(rest) if !rest.starts_with(r"UNC\") => PathBuf::from(rest),
+        _ => path.to_path_buf(),
+    }
+}
+
 fn canonical_root(raw: &str) -> Result<PathBuf> {
     let p = Path::new(raw);
     if !p.is_absolute() {
@@ -185,7 +194,10 @@ fn canonical_root(raw: &str) -> Result<PathBuf> {
         ));
     }
     let root = std::fs::canonicalize(p).map_err(|e| McpInputError::Invalid(e.to_string()))?;
-    if root != p {
+    // Windows canonicalizes to `\?\C:\...`; accept the ordinary `C:\...`
+    // spelling of the same directory, but still reject `..`, symlinks and other
+    // non-canonical spellings. The canonical form is what the store sees.
+    if root != p && strip_verbatim(&root) != p {
         return Err(McpInputError::Invalid("repo_root must be canonical".into()));
     }
     Ok(root)

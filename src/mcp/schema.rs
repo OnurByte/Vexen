@@ -43,6 +43,7 @@ pub struct ExplainInput {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize)]
 pub struct Envelope<T> {
+    #[schemars(with = "i32")]
     pub schema_version: u32,
     pub repo_id: String,
     pub items: Vec<T>,

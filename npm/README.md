@@ -2,7 +2,7 @@
 
 Bootstrap for [Vexen](https://github.com/OnurByte/Vexen), local evidence-based memory for coding agents.
 
-> **Status: not published to npm yet.** Release binaries for v0.1.0 exist on GitHub and the wrapper was verified against them on Windows, but the package itself is not on npm. Until then, download from the Releases page or build from source: `cargo install --git https://github.com/OnurByte/Vexen --locked`.
+> **Status: published.** `npx @onurbyte/vexen` downloads the matching GitHub release, verifies its SHA-256 and runs it. Checked against the real registry and release on Windows, and on Linux and macOS by the `launcher-smoke` CI job.
 
 ## What it does
 
@@ -42,6 +42,6 @@ The only network access is the explicit download above, on first run of a versio
 
 1. Bump `version` in `Cargo.toml` and `npm/package.json` to the same value.
 2. Tag `vX.Y.Z`. The release workflow builds the five targets and uploads archives with `.sha256` files.
-3. Publish the package after the release assets exist (the workflow does this when the repository variable `PUBLISH_NPM` is `true` and the `NPM_TOKEN` secret is set).
+3. The workflow publishes the package with npm trusted publishing (OIDC, with provenance) when the repository variable `PUBLISH_NPM` is `true`; no token is stored.
 
-The package name `@onurbyte/vexen` needs an npm account or organization named `onurbyte`; the unscoped name `vexen` is already taken by another project.
+The package name `@onurbyte/vexen` lives under the `onurbyte` npm account; the unscoped name `vexen` belongs to another project.
