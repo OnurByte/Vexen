@@ -84,7 +84,7 @@ fn dry_run_writes_nothing() {
     let (_d, h) = home();
     let o = run(&h, "install", &CURSOR, &["--dry-run"]);
     assert!(o.status.success());
-    assert!(out(&o).contains("would created"), "{}", out(&o));
+    assert!(out(&o).contains("would create"), "{}", out(&o));
     assert!(!h.join(".cursor").exists());
 }
 
