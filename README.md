@@ -72,7 +72,7 @@ vexen install --scope global --dry-run
 vexen install --scope global
 ```
 
-It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds. The file formats of the automated clients are covered by tests. Claude Code (2.1.309, Windows) has been checked live: it launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
+It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds. The file formats of the automated clients are covered by tests. Claude Code (2.1.309) and OpenCode (2.2.5) have each been checked live once, on Windows: they launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
 
 **Use it from an agent.** `vexen mcp --stdio` serves four MCP tools: `vexen_check` reads past evidence for a file, `vexen_record` saves a failed attempt or a decision, `vexen_outcome` attaches a test result, and `vexen_explain` shows where a note came from. Point any MCP client at it, for example:
 
@@ -100,7 +100,7 @@ Without MCP, agents save notes with `vexen record --path <file> --summary "<what
 
 We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
 
-Only Claude Code has been smoke-tested live, once, on Windows. A small paired pilot (24 real agent runs, toy tasks) is written up in [docs/pilot-results.md](docs/pilot-results.md): an applicable note helped on the two tasks built to need one, Vexen with nothing applicable did no harm, and the sample is far too small to claim an effect in real repositories.
+Only Claude Code and OpenCode have been smoke-tested live, once each, on Windows. A small paired pilot (24 real agent runs, toy tasks) is written up in [docs/pilot-results.md](docs/pilot-results.md): an applicable note helped on the two tasks built to need one, Vexen with nothing applicable did no harm, and the sample is far too small to claim an effect in real repositories.
 
 ## Privacy
 

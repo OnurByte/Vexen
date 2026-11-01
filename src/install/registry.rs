@@ -113,7 +113,7 @@ const ALL: &[Adapter] = &[
         project: Some("opencode.json"),
         global: Some(".config/opencode/opencode.json"),
         detect: Some(".config/opencode"),
-        support: "config-tested",
+        support: "client-smoke-tested (OpenCode 2.2.5, Windows, one session)",
     },
     Adapter {
         id: "zed",

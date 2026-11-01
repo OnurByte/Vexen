@@ -8,6 +8,10 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 - The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
 - `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
 
+## Unreleased
+
+- OpenCode 2.2.5 smoke-tested live on Windows (installer-written config, `vexen_check` called by a real model). The registry label for OpenCode is updated.
+
 ## 0.2.3
 
 Hardening from an independent multi-model review; every finding was verified against the code first.
