@@ -103,6 +103,12 @@ impl RepoArg {
     }
 }
 
+/// Strip the Windows verbatim prefix so messages show ordinary paths.
+pub fn display_path(path: &Path) -> String {
+    let text = path_str(path);
+    text.strip_prefix(r"\\?\").map(str::to_owned).unwrap_or(text)
+}
+
 pub fn path_str(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }

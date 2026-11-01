@@ -10,7 +10,7 @@ The public story should stay evidence-led. The ten-repository Task 1 evaluation 
 
 - `README.md`: focused English overview, accessible diagram alt text, status, available research commands, privacy boundaries, planned install command, and benchmark caveat.
 - `brand.md`: voice, palette, type, mark and claims guidance.
-- `icon.svg`: original V mark using the brief's paired evidence paths.
+- `icon.svg`: canonical four-contour V mark (near-white and Oxocarbon blue). `icon-light.svg` is its light-background variant; `docs/assets/banner.svg` and the hero embed it.
 - `docs/assets/hero.svg`: schematic repo-to-evidence-to-next-session illustration.
 - `docs/assets/workflow.svg`: failed attempt → local evidence → qualified reminder sequence.
 - `docs/assets/example.svg`: a fictional reminder card labeled “ILLUSTRATIVE · FICTIONAL,” with sample source, test, and commit fields and an explicit current-code qualification.

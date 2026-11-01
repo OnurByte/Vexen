@@ -1,0 +1,96 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag, Cargo.toml and npm/package.json must agree
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          cargo_v=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
+          npm_v=$(sed -n 's/.*"version": "\(.*\)".*/\1/p' npm/package.json | head -n1)
+          echo "tag=$tag cargo=$cargo_v npm=$npm_v"
+          [ "$tag" = "$cargo_v" ] && [ "$tag" = "$npm_v" ]
+
+  create-release:
+    needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release once, before parallel uploads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+                 --title "$GITHUB_REF_NAME" --notes "Early development release. See the README for status."
+
+  build:
+    needs: create-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, triple: x86_64-pc-windows-msvc, ext: zip, exe: vexen.exe }
+          - { os: ubuntu-latest, triple: x86_64-unknown-linux-gnu, ext: tar.gz, exe: vexen }
+          - { os: ubuntu-24.04-arm, triple: aarch64-unknown-linux-gnu, ext: tar.gz, exe: vexen }
+          - { os: macos-latest, triple: x86_64-apple-darwin, ext: tar.gz, exe: vexen }
+          - { os: macos-latest, triple: aarch64-apple-darwin, ext: tar.gz, exe: vexen }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.triple }}
+      - run: cargo build --release --locked --target ${{ matrix.triple }}
+      - name: Package
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="vexen-${version}-${{ matrix.triple }}"
+          mkdir dist
+          cp "target/${{ matrix.triple }}/release/${{ matrix.exe }}" "dist/${{ matrix.exe }}"
+          if [ "${{ matrix.ext }}" = "zip" ]; then
+            powershell -NoProfile -Command "Compress-Archive -Path dist/${{ matrix.exe }} -DestinationPath ${name}.zip"
+          else
+            tar -czf "${name}.tar.gz" -C dist "${{ matrix.exe }}"
+          fi
+          if command -v sha256sum >/dev/null; then
+            sha256sum "${name}.${{ matrix.ext }}" | sed 's/ \*/  /' > "${name}.${{ matrix.ext }}.sha256"
+          else
+            shasum -a 256 "${name}.${{ matrix.ext }}" > "${name}.${{ matrix.ext }}.sha256"
+          fi
+      - name: Upload to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="vexen-${version}-${{ matrix.triple }}"
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            "${name}.${{ matrix.ext }}" "${name}.${{ matrix.ext }}.sha256" --clobber
+
+  publish-npm:
+    needs: build
+    if: ${{ vars.PUBLISH_NPM == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+      - run: npm publish --provenance --access public
+        working-directory: npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

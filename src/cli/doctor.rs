@@ -10,7 +10,7 @@ pub fn run(repo: &RepoArg) -> ExitCode {
             return ExitCode::FAILURE;
         }
     };
-    println!("checkout: {}", root.display());
+    println!("checkout: {}", super::display_path(&root));
     let store = match Store::open_read_only(&root) {
         Ok(store) => store,
         Err(StoreError::NotInitialized(_)) => {

@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [implementation]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Configure git identity for fixtures
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name CI
+      - name: Test
+        shell: bash
+        run: |
+          # The cochange benchmark is a harness=false binary that needs
+          # arguments, so run lib, bins and integration tests only.
+          # control_separator needs a control character in a file name, which
+          # Windows cannot create; tracked as a known gap, not hidden.
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cargo test --lib --bins --tests -- --skip control_separator_in_path
+          else
+            cargo test --lib --bins --tests
+          fi
+
+  npm-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Wrapper syntax and metadata
+        working-directory: npm
+        run: |
+          node --check bin/vexen.js
+          node -e "const p=require('./package.json'); if(!p.bin.vexen||p.name!=='@onurbyte/vexen') process.exit(1)"
+          npm pack --dry-run

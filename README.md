@@ -1,63 +1,103 @@
 <p align="center">
-  <img src="icon.svg" width="84" height="84" alt="Vexen mark: two cyan and violet strokes meet in a forward-pointing V." />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="icon.svg">
+    <img src="icon-light.svg" width="84" height="78" alt="Vexen mark: two white and two blue paths converge into a forward-pointing V." />
+  </picture>
 </p>
 
-<h1 align="center">Vexen — give your next coding agent a head start</h1>
+<h1 align="center">Vexen</h1>
 
-<p align="center">Local, evidence-based memory for coding agents working in the same repository.</p>
+<p align="center"><strong>Give your next coding agent a head start.</strong><br/>Local, evidence-based memory for the agents working in your repository.</p>
+
+<p align="center">
+  <img alt="Status: early development" src="https://img.shields.io/badge/status-early%20development-78a9ff?labelColor=262626" />
+  <img alt="Local first" src="https://img.shields.io/badge/local--first-no%20cloud-78a9ff?labelColor=262626" />
+  <img alt="Written in Rust" src="https://img.shields.io/badge/built%20with-Rust-78a9ff?labelColor=262626" />
+  <img alt="MCP server" src="https://img.shields.io/badge/speaks-MCP-78a9ff?labelColor=262626" />
+  <img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-78a9ff?labelColor=262626" />
+</p>
 
 <p align="center"><img src="docs/assets/hero.svg" alt="Vexen, local repository memory for coding agents: labeled flow from your repo to saved evidence to the next session." /></p>
 
-Vexen is being built to help a coding agent carry useful repository context into the next session. It focuses on two things: what a past attempt actually showed, and where the supporting evidence came from. It is designed to work locally across coding-agent harnesses.
+Coding agents are fast, but every session starts cold. Vexen keeps a small, local record of what past attempts in your repository actually showed, with the source for each, so the next agent can check it before repeating a dead end.
 
-## What exists today
+> **Early development.** The pieces below are real and tested, but Vexen is not a finished product yet. [Where it stands](#where-vexen-stands) lists what works today and what does not.
 
-This is an early development project, not a ready-to-install tool. The current repository contains a Rust Git-history research library and evaluation harness. It does **not** yet include a usable Vexen command, MCP server, client installer, or working cross-session memory workflow.
+## The problem
 
-The first change-impact experiment did not beat plain historical co-change counts on any of ten evaluated repositories. Change-impact suggestions therefore remain research-only. The results are a file-retrieval proxy, not evidence that Vexen improves coding-agent task success. See the [evaluation and its limitations](docs/benchmarks.md).
+<p align="center"><img src="docs/assets/problem.svg" alt="Illustrative and fictional: in session one an agent retries a charge after a timeout and a test fails with a double charge. A week later a new agent tries the same thing, because it has no memory of the first failure." /></p>
 
-## The idea
+Your history shows what shipped. It rarely shows what was tried and abandoned, or why. Generic "memory" can make it worse by surfacing stale or unrelated advice. Vexen is built around the opposite rule: say something only when the evidence still fits.
+
+## How it works
 
 <p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: record what failed, keep the proof, and recall it only when it fits current code. Vexen can stay quiet when evidence does not apply." /></p>
 
-A useful reminder should say what happened, point to its source, and make clear when it may no longer apply. A test result is evidence about one code state; it is not a guarantee. Vexen should be able to say “no relevant evidence.”
+1. **Record what failed.** An agent saves the attempt and its result through the MCP server.
+2. **Keep the proof.** The note stays tied to a file, a commit and the test that showed it.
+3. **Recall it only when it fits.** Before an edit, Vexen checks whether the evidence still applies to the current code. If not, it says there is no relevant evidence.
 
-## See the shape of a reminder
+### What a reminder looks like
 
 <p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
 
-The example is fictional and illustrates the planned format. It is not a result from a Vexen run.
+The example is fictional and shows the planned format. It is not output from a Vexen run.
 
-## Explore the research slice
+## Built to stay out of your way
 
-Requires Rust 2024 and Git. Run the available tests:
+<p align="center"><img src="docs/assets/principles.svg" alt="Four design principles: local first with no account, cloud or telemetry; every reminder cites its source; no relevant evidence is a valid answer; one small Rust and SQLite binary with nothing running in the background." /></p>
 
-```sh
-cargo test --all-targets
-```
+A test result is evidence about one code state, not a guarantee. Vexen reports what happened and where it came from, and leaves the decision to you and your agent. It does not block edits, gate approvals, or record your chat transcripts.
 
-Run the co-change benchmark against a **local** Git repository:
+## Try it today
 
-```sh
-cargo bench --bench cochange -- /path/to/repository.git 0.8 --per-query /tmp/queries.jsonl
-```
-
-The benchmark reads local history; the frozen-corpus runner also requires repositories already downloaded. See [reproduction details](docs/benchmarks.md).
-
-## Installation status
-
-There is no installable Vexen binary yet. After the CLI is implemented and the repository is published at the intended address, the planned source install is:
+Vexen builds from source (Rust 2024 and Git required):
 
 ```sh
 cargo install --git https://github.com/OnurByte/Vexen --locked
+cd my-repo
+vexen init
+vexen doctor
+vexen check --diff HEAD
 ```
 
-This command is a plan, not a working installation today. No crates.io package or release binary is claimed.
+<p align="center"><img src="docs/assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
 
-## Privacy and scope
+On a fresh repository the honest answer is "no relevant evidence", and that is what you see.
 
-The research slice reads local Git history. It does not collect prompts, transcripts, command output, telemetry, or API credentials. Planned Vexen memory is local-first; its storage and security behavior still need implementation and validation. Vexen is not an agent, permission gate, or guarantee against regressions.
+**Use it from an agent.** `vexen mcp --stdio` serves four MCP tools (`vexen_check`, `vexen_record`, `vexen_outcome`, `vexen_explain`). Point any MCP client at it, for example:
+
+```json
+{ "command": "vexen", "args": ["mcp", "--stdio"] }
+```
+
+Agents pass the repository root explicitly on every call, so one server never leaks memory between projects. Your data lives in `.vexen/` inside the repository, and the database files are ignored by Git. `vexen export` and `vexen import` move it as versioned JSONL.
+
+**Coming: `npx`.** A small launcher in [`npm/`](npm/) will download a checksummed binary for your platform, so `npx @onurbyte/vexen init` works without Rust. It is not published yet; see [`npm/README.md`](npm/README.md).
+
+## Where Vexen stands
+
+<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, Git-history analysis for research. Next: installer, opt-in capture, release binaries and npx launcher, CI. Later: paired agent evaluation, live client smoke tests, published negative results." /></p>
+
+We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
+
+Vexen has not been smoke-tested with live coding-agent clients yet, and no agent-outcome improvement is claimed.
+
+## Privacy
+
+Vexen reads local Git history and stores what you or your agent record. By design it makes no network calls, has no telemetry, and does not capture prompts, transcripts, command output or credentials. Secret-like text is refused at record time. Imported text is treated as data, never as instructions.
+
+## Build and contribute
+
+```sh
+cargo test                                  # unit and integration tests
+cargo bench --bench cochange -- /path/to/repo.git 0.8 --per-query out.jsonl
+```
+
+The benchmark reads a **local** repository; reproduction details are in [docs/benchmarks.md](docs/benchmarks.md). The plan and task list live in [docs/specification.md](docs/specification.md), progress in [docs/progress.md](docs/progress.md), and the look and voice in [brand.md](brand.md).
+
+On Windows one test (`control_separator_in_path…`) cannot create its fixture file name and fails; CI skips it.
 
 ## License
 
-GPL-3.0-or-later. See [LICENSE](LICENSE).
+GPL-3.0-or-later. See [LICENSE](LICENSE). Vexen is independent and is not endorsed by Vercel; the [Geist](https://github.com/vercel/geist-font) fonts in diagrams are under the SIL Open Font License.
