@@ -24,10 +24,16 @@ jobs:
         run: |
           # The cochange benchmark is a harness=false binary that needs
           # arguments, so run lib, bins and integration tests only.
-          # control_separator needs a control character in a file name, which
-          # Windows cannot create; tracked as a known gap, not hidden.
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cargo test --lib --bins --tests -- --skip control_separator_in_path
+          # Some fixtures need file names the OS refuses to create:
+          # control characters on Windows, non-UTF-8 bytes on macOS (APFS).
+          # Known gaps, skipped per platform rather than hidden.
+          case "${{ matrix.os }}" in
+            windows-latest) skip="control_separator_in_path" ;;
+            macos-latest)   skip="non_utf8" ;;
+            *)              skip="" ;;
+          esac
+          if [ -n "$skip" ]; then
+            cargo test --lib --bins --tests -- --skip "$skip"
           else
             cargo test --lib --bins --tests
           fi
