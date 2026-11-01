@@ -14,6 +14,8 @@ const { spawnSync } = require("node:child_process");
 
 const version = require("../package.json").version;
 const repo = "OnurByte/Vexen";
+const MAX_ARCHIVE_BYTES = 200 * 1024 * 1024;
+const TIMEOUT_MS = 60_000;
 
 const targets = {
   "win32-x64": { triple: "x86_64-pc-windows-msvc", ext: "zip", exe: "vexen.exe" },
@@ -42,24 +44,39 @@ function cacheRoot() {
 
 function get(url, redirects = 5) {
   return new Promise((resolve, reject) => {
-    https
-      .get(url, { headers: { "user-agent": "vexen-npm-bootstrap" } }, (res) => {
-        if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
-          res.resume();
-          if (redirects === 0) return reject(new Error("too many redirects"));
-          return resolve(get(new URL(res.headers.location, url).toString(), redirects - 1));
-        }
-        if (res.statusCode !== 200) {
-          res.resume();
-          return reject(Object.assign(new Error(`HTTP ${res.statusCode} for ${url}`), { status: res.statusCode }));
-        }
-        const chunks = [];
-        res.on("data", (c) => chunks.push(c));
-        res.on("end", () => resolve(Buffer.concat(chunks)));
-        res.on("error", reject);
-      })
-      .on("error", reject);
+    const request = https.get(url, { headers: { "user-agent": "vexen-npm-bootstrap" } }, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+        res.resume();
+        if (redirects === 0) return reject(new Error("too many redirects"));
+        const next = new URL(res.headers.location, url);
+        if (next.protocol !== "https:") return reject(new Error("refusing a non-HTTPS redirect"));
+        return resolve(get(next.toString(), redirects - 1));
+      }
+      if (res.statusCode !== 200) {
+        res.resume();
+        return reject(Object.assign(new Error(`HTTP ${res.statusCode} for ${url}`), { status: res.statusCode }));
+      }
+      const chunks = [];
+      let size = 0;
+      res.on("data", (chunk) => {
+        size += chunk.length;
+        if (size > MAX_ARCHIVE_BYTES) return request.destroy(new Error("download exceeds the size limit"));
+        chunks.push(chunk);
+      });
+      res.on("end", () => resolve(Buffer.concat(chunks)));
+      res.on("error", reject);
+    });
+    request.setTimeout?.(TIMEOUT_MS, () => request.destroy(new Error("download timed out")));
+    request.on("error", reject);
   });
+}
+
+function tarCommand() {
+  // Only bsdtar reads zip; Git Bash can put GNU tar first on PATH.
+  if (process.platform === "win32") {
+    return path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe");
+  }
+  return "tar";
 }
 
 async function install(target, binary) {
@@ -87,22 +104,31 @@ async function install(target, binary) {
     fail("checksum mismatch; refusing to run the downloaded archive.");
   }
 
+  // Unpack in a private temp directory, then rename: two parallel runs never
+  // see (or run) a half-written binary.
   const dir = path.dirname(binary);
-  fs.mkdirSync(dir, { recursive: true });
-  const archivePath = path.join(dir, `${name}.${target.ext}`);
-  fs.writeFileSync(archivePath, archive);
-  // bsdtar (Windows 10+, macOS) and GNU tar both read tar.gz; only bsdtar reads
-  // zip, so on Windows avoid a GNU tar that Git Bash may put first on PATH.
-  const tar =
-    process.platform === "win32"
-      ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe")
-      : "tar";
-  const unpacked = spawnSync(tar, ["-xf", archivePath, "-C", dir], { stdio: ["ignore", process.stderr, process.stderr] });
-  fs.rmSync(archivePath, { force: true });
-  if (unpacked.status !== 0 || !fs.existsSync(binary)) {
-    fail("could not unpack the downloaded archive (is `tar` available?).");
+  fs.mkdirSync(path.dirname(dir), { recursive: true });
+  const work = fs.mkdtempSync(`${dir}.tmp-`);
+  try {
+    const archivePath = path.join(work, `${name}.${target.ext}`);
+    fs.writeFileSync(archivePath, archive);
+    const unpacked = spawnSync(tarCommand(), ["-xf", archivePath, "-C", work], {
+      stdio: ["ignore", process.stderr, process.stderr],
+    });
+    const staged = path.join(work, target.exe);
+    if (unpacked.status !== 0 || !fs.existsSync(staged)) {
+      fail("could not unpack the downloaded archive (is `tar` available?).");
+    }
+    if (process.platform !== "win32") fs.chmodSync(staged, 0o755);
+    fs.mkdirSync(dir, { recursive: true });
+    try {
+      fs.renameSync(staged, binary);
+    } catch (error) {
+      if (!fs.existsSync(binary)) throw error; // lost a race to an identical copy
+    }
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
   }
-  if (process.platform !== "win32") fs.chmodSync(binary, 0o755);
 }
 
 async function main() {
@@ -110,7 +136,10 @@ async function main() {
   if (!binary) {
     const target = targets[`${process.platform}-${process.arch}`];
     if (!target) {
-      fail(`unsupported platform ${process.platform}-${process.arch}. Build from source: cargo install --git https://github.com/${repo} --locked`);
+      fail(
+        `unsupported platform ${process.platform}-${process.arch}. ` +
+          `Build from source: cargo install --git https://github.com/${repo} --locked`,
+      );
     }
     binary = path.join(cacheRoot(), version, target.triple, target.exe);
     if (!fs.existsSync(binary)) {

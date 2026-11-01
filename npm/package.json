@@ -13,6 +13,11 @@
   "engines": {
     "node": ">=18"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/OnurByte/Vexen#readme",
+  "bugs": "https://github.com/OnurByte/Vexen/issues",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OnurByte/Vexen.git",

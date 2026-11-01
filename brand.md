@@ -26,6 +26,8 @@ The mark is [`icon.svg`](icon.svg): four contours that converge into a forward-p
 - [`icon-light.svg`](icon-light.svg): same geometry in `#161616` and `#0f62fe` for light surfaces. The README switches between them with `<picture>`.
 - [`docs/assets/banner.svg`](docs/assets/banner.svg): 1280×640 mark, wordmark, and tagline; use it for the GitHub social preview (upload it as a PNG in repository settings).
 - [`docs/assets/hero.svg`](docs/assets/hero.svg): README hero; embeds the mark from `icon.svg`.
+- [`docs/assets/social-preview.png`](docs/assets/social-preview.png): the banner as a PNG, ready to upload as the GitHub social preview.
+- README illustrations (`problem`, `workflow`, `example`, `principles`, `terminal`, `status`): dark `#161616` cards on `#262626`, Geist text outlined to paths so it renders the same everywhere, only the mark's blue and white. `terminal.svg` is real command output; `problem.svg` and `example.svg` are labeled fictional.
 
 Keep clear space around the mark of at least a quarter of its width and do not render it below 24 px wide. Diagrams use only the mark's blue and its lighter tint; no other hues.
 

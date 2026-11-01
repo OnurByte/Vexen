@@ -20,8 +20,20 @@ jobs:
           echo "tag=$tag cargo=$cargo_v npm=$npm_v"
           [ "$tag" = "$cargo_v" ] && [ "$tag" = "$npm_v" ]
 
-  build:
+  create-release:
     needs: check-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release once, before parallel uploads
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+                 --title "$GITHUB_REF_NAME" --notes "Early development release. See the README for status."
+
+  build:
+    needs: create-release
     strategy:
       fail-fast: false
       matrix:
@@ -29,26 +41,32 @@ jobs:
           - { os: windows-latest, triple: x86_64-pc-windows-msvc, ext: zip, exe: vexen.exe }
           - { os: ubuntu-latest, triple: x86_64-unknown-linux-gnu, ext: tar.gz, exe: vexen }
           - { os: ubuntu-24.04-arm, triple: aarch64-unknown-linux-gnu, ext: tar.gz, exe: vexen }
-          - { os: macos-13, triple: x86_64-apple-darwin, ext: tar.gz, exe: vexen }
+          - { os: macos-latest, triple: x86_64-apple-darwin, ext: tar.gz, exe: vexen }
           - { os: macos-latest, triple: aarch64-apple-darwin, ext: tar.gz, exe: vexen }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release --locked
+        with:
+          targets: ${{ matrix.triple }}
+      - run: cargo build --release --locked --target ${{ matrix.triple }}
       - name: Package
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
           name="vexen-${version}-${{ matrix.triple }}"
           mkdir dist
-          cp "target/release/${{ matrix.exe }}" "dist/${{ matrix.exe }}"
+          cp "target/${{ matrix.triple }}/release/${{ matrix.exe }}" "dist/${{ matrix.exe }}"
           if [ "${{ matrix.ext }}" = "zip" ]; then
             powershell -NoProfile -Command "Compress-Archive -Path dist/${{ matrix.exe }} -DestinationPath ${name}.zip"
           else
             tar -czf "${name}.tar.gz" -C dist "${{ matrix.exe }}"
           fi
-          sha256sum "${name}.${{ matrix.ext }}" | sed 's/ \*/  /' > "${name}.${{ matrix.ext }}.sha256"
+          if command -v sha256sum >/dev/null; then
+            sha256sum "${name}.${{ matrix.ext }}" | sed 's/ \*/  /' > "${name}.${{ matrix.ext }}.sha256"
+          else
+            shasum -a 256 "${name}.${{ matrix.ext }}" > "${name}.${{ matrix.ext }}.sha256"
+          fi
       - name: Upload to the release
         shell: bash
         env:
@@ -56,8 +74,8 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           name="vexen-${version}-${{ matrix.triple }}"
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Early development release. See README for status."
-          gh release upload "$GITHUB_REF_NAME" "${name}.${{ matrix.ext }}" "${name}.${{ matrix.ext }}.sha256" --clobber
+          gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            "${name}.${{ matrix.ext }}" "${name}.${{ matrix.ext }}.sha256" --clobber
 
   publish-npm:
     needs: build
