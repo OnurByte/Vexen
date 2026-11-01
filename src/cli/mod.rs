@@ -3,6 +3,8 @@ mod doctor;
 mod export;
 mod import;
 mod init;
+mod install;
+mod observe;
 mod record;
 
 use clap::{Parser, Subcommand, ValueEnum};
@@ -46,6 +48,9 @@ enum Cmd {
         /// Free-text search over recorded summaries.
         #[arg(long)]
         query: Option<String>,
+        /// Condition the query is made under (repeatable); must equal a note's conditions exactly.
+        #[arg(long = "condition")]
+        conditions: Vec<String>,
     },
     /// Show the provenance chain of a record.
     Explain {
@@ -98,6 +103,25 @@ enum Cmd {
         #[command(flatten)]
         repo: RepoArg,
     },
+    /// Run a test command you type, then record its exit code and an output hash on a record.
+    Observe {
+        /// Record id printed by `vexen record`.
+        id: String,
+        #[arg(long)]
+        test_id: String,
+        /// Idempotency key; defaults to a hash of test id, exit code and output hash.
+        #[arg(long)]
+        key: Option<String>,
+        #[command(flatten)]
+        repo: RepoArg,
+        /// The command to run, after `--`.
+        #[arg(last = true, required = true)]
+        command: Vec<String>,
+    },
+    /// Add Vexen's MCP entry to agent config files (previews with --dry-run).
+    Install(install::InstallArgs),
+    /// Remove only the MCP entry that `install` wrote.
+    Uninstall(install::InstallArgs),
     /// Replay a JSONL export into this checkout; safe to repeat.
     Import {
         file: PathBuf,
@@ -160,9 +184,13 @@ pub fn main() -> ExitCode {
             diff,
             paths,
             query,
-        } => check::run(&repo, diff, paths, query),
+            conditions,
+        } => check::run(&repo, diff, paths, query, conditions),
         Cmd::Explain { id, repo } => check::explain(&repo, id),
         Cmd::Doctor(repo) => return doctor::run(&repo),
+        Cmd::Observe { id, test_id, key, repo, command } => observe::run(&repo, id, test_id, key, command),
+        Cmd::Install(args) => return install::run_install(args, false),
+        Cmd::Uninstall(args) => return install::run_install(args, true),
         Cmd::Export { format, repo } => export::run(&repo, format),
         Cmd::Record {
             path,

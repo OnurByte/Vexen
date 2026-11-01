@@ -65,6 +65,15 @@ vexen check --diff HEAD
 
 On a fresh repository the honest answer is "no relevant evidence", and that is what you see.
 
+**Connect your clients in one step.** `vexen install` adds the MCP entry to the config files of the agents it finds (Claude Code, Codex CLI, Cursor, Gemini CLI, Windsurf, Kiro, VS Code, OpenCode). Preview first, then apply; `vexen uninstall` removes only what it added:
+
+```sh
+vexen install --scope global --dry-run
+vexen install --scope global
+```
+
+It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. The file formats are covered by tests; no client has been smoke-tested live yet.
+
 **Use it from an agent.** `vexen mcp --stdio` serves four MCP tools (`vexen_check`, `vexen_record`, `vexen_outcome`, `vexen_explain`). Point any MCP client at it, for example:
 
 ```json
@@ -79,7 +88,7 @@ Agents pass the repository root explicitly on every call, so one server never le
 npx skills add OnurByte/Vexen
 ```
 
-Without MCP, agents save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`.
+Without MCP, agents save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`, or run the test and attach it in one step with `vexen observe <id> --test-id <test> -- <command>` (only the exit code and an output hash are stored).
 
 **No Rust?** Prebuilt binaries with SHA-256 checksums for Windows, Linux (x64, arm64) and macOS (x64, arm64) are on the [Releases page](https://github.com/OnurByte/Vexen/releases). They are early builds and have not been tested with live agent clients.
 
@@ -87,13 +96,15 @@ Without MCP, agents save notes with `vexen record --path <file> --summary "<what
 
 ## Where Vexen stands
 
-<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, Git-history analysis for research. Next: installer, opt-in capture, release binaries and npx launcher, CI. Later: paired agent evaluation, live client smoke tests, published negative results." /></p>
+<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, installer for eight agents, test-result capture, Git-history analysis for research. Next: publish the npx launcher, live client smoke tests, signed binaries. Later: paired agent evaluation, published negative results." /></p>
 
 We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
 
 Vexen has not been smoke-tested with live coding-agent clients yet, and no agent-outcome improvement is claimed.
 
 ## Privacy
+
+Details are in [docs/security.md](docs/security.md); formats and the MCP tools are in [docs/formats.md](docs/formats.md) and [docs/protocol.md](docs/protocol.md).
 
 Vexen reads local Git history and stores what you or your agent record. By design it makes no network calls, has no telemetry, and does not capture prompts, transcripts, command output or credentials. Secret-like text is refused at record time. Imported text is treated as data, never as instructions.
 

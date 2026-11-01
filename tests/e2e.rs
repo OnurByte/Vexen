@@ -274,3 +274,27 @@ fn record_can_store_an_accepted_decision() {
     assert!(ok, "{err}");
     assert!(out.contains("accepted_decision"), "{out}");
 }
+
+#[test]
+fn observe_runs_the_typed_command_and_stores_only_exit_code_and_hash() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "flaky retry"], &root);
+    let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let o = Command::new(env!("CARGO_BIN_EXE_vexen"))
+        .args(["observe", &id, "--test-id", "t::flaky", "--repo"])
+        .arg(&root)
+        .args(["--", "git", "--version"])
+        .output()
+        .unwrap();
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    assert!(String::from_utf8_lossy(&o.stdout).contains("observed"));
+    let events = Store::open(&root).unwrap().events().unwrap();
+    let json = serde_json::to_string(&events[1]).unwrap();
+    assert!(json.contains("\"exit_code\":0"), "{json}");
+    assert!(json.contains("output_sha256"), "{json}");
+    assert!(!json.contains("git version"), "raw output must not be stored: {json}");
+}
