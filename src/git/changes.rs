@@ -3,8 +3,11 @@ use super::identity::RepoPath;
 #[derive(Clone, Debug)]
 pub struct ChangeTransaction {
     pub commit: String,
+    pub committer_timestamp: i64,
     pub paths: Vec<RepoPath>,
     pub renames: Vec<(RepoPath, RepoPath)>,
+    pub added_paths: Vec<RepoPath>,
+    pub deleted_paths: Vec<RepoPath>,
 }
 
 /// Keep transactions small enough to represent a plausible code change.

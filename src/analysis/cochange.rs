@@ -64,8 +64,9 @@ fn rankings(index: &HistoryIndex, inputs: &[RepoPath]) -> Vec<CochangeHint> {
                 return None;
             }
             let example_commits = examples.remove(&path).unwrap_or_default();
+            let display_path = index.display_path(&path)?;
             Some(CochangeHint {
-                path,
+                path: display_path,
                 support,
                 confidence,
                 lift,

@@ -7,19 +7,25 @@ pub struct RepoPath(String);
 impl RepoPath {
     pub fn new(path: impl AsRef<str>) -> Result<Self, String> {
         let original = path.as_ref();
-        let s = original.replace('\\', "/");
+        let s = original;
+        let portable = if cfg!(windows) {
+            s.replace('\\', "/")
+        } else {
+            s.to_string()
+        };
         let bytes = s.as_bytes();
         let windows_drive = bytes.len() >= 2 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':';
         if s.is_empty()
             || s.starts_with('/')
             || windows_drive
             || s.contains('\0')
-            || s.split('/')
+            || portable
+                .split('/')
                 .any(|part| part.is_empty() || part == ".." || part == ".")
         {
             return Err(format!("not a safe repository-relative path: {s:?}"));
         }
-        Ok(Self(s))
+        Ok(Self(s.to_string()))
     }
     pub fn as_str(&self) -> &str {
         &self.0

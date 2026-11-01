@@ -6,6 +6,7 @@ use std::{
 };
 use vexen::{
     analysis::cochange::recommend_related,
+    analysis::json::escape_json_string,
     git::{
         history::{HistoryIndex, analyze_history},
         identity::RepoPath,
@@ -68,7 +69,11 @@ fn plain_counts(index: &HistoryIndex, queries: &[RepoPath]) -> Vec<RepoPath> {
     }
     let mut ranked: Vec<_> = counts.into_iter().collect();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    ranked.into_iter().take(3).map(|x| x.0).collect()
+    ranked
+        .into_iter()
+        .take(3)
+        .filter_map(|x| index.display_path(&x.0))
+        .collect()
 }
 
 fn basename_proximity(index: &HistoryIndex, queries: &[RepoPath]) -> Vec<RepoPath> {
@@ -82,13 +87,16 @@ fn basename_proximity(index: &HistoryIndex, queries: &[RepoPath]) -> Vec<RepoPat
     let mut ranked: Vec<_> = universe
         .into_iter()
         .map(|p| {
+            let display_candidate = index.display_path(&p).unwrap_or_else(|| p.clone());
             let score = queries
                 .iter()
                 .map(|query| {
-                    let q = index.canonical(query);
-                    if p.basename() == q.basename() {
+                    let q = index
+                        .display_path(query)
+                        .unwrap_or_else(|| index.canonical(query));
+                    if display_candidate.basename() == q.basename() {
                         2
-                    } else if p.parent() == q.parent() {
+                    } else if display_candidate.parent() == q.parent() {
                         1
                     } else {
                         0
@@ -101,19 +109,18 @@ fn basename_proximity(index: &HistoryIndex, queries: &[RepoPath]) -> Vec<RepoPat
         .filter(|(_, s)| *s > 0)
         .collect();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-    ranked.into_iter().take(3).map(|x| x.0).collect()
-}
-fn json_escape(s: &str) -> String {
-    s.replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
+    ranked
+        .into_iter()
+        .take(3)
+        .filter_map(|x| index.display_path(&x.0))
+        .collect()
 }
 fn json_paths(paths: &[RepoPath]) -> String {
     format!(
         "[{}]",
         paths
             .iter()
-            .map(|p| format!("\"{}\"", json_escape(p.as_str())))
+            .map(|p| format!("\"{}\"", escape_json_string(p.as_str())))
             .collect::<Vec<_>>()
             .join(",")
     )
@@ -123,7 +130,7 @@ fn json_set(paths: &BTreeSet<RepoPath>) -> String {
         "[{}]",
         paths
             .iter()
-            .map(|p| format!("\"{}\"", json_escape(p.as_str())))
+            .map(|p| format!("\"{}\"", escape_json_string(p.as_str())))
             .collect::<Vec<_>>()
             .join(",")
     )
@@ -133,7 +140,7 @@ fn json_pred(paths: &[RepoPath]) -> String {
         "[{}]",
         paths
             .iter()
-            .map(|p| format!("\"{}\"", json_escape(p.as_str())))
+            .map(|p| format!("\"{}\"", escape_json_string(p.as_str())))
             .collect::<Vec<_>>()
             .join(",")
     )
@@ -159,27 +166,49 @@ fn run() -> Result<(), String> {
     let repo = Path::new(&args[0]);
     let start = std::time::Instant::now();
     let history = analyze_history(repo, usize::MAX)?;
-    let n = history.transaction_count();
+    let all_transactions = history.raw_transactions();
+    let n = all_transactions.len();
     let split = if n < 2 {
         0
     } else {
         ((n as f64 * fraction).floor() as usize).clamp(1, n - 1)
     };
+    let cutoff = all_transactions
+        .get(split)
+        .map(|tx| tx.committer_timestamp)
+        .unwrap_or(i64::MAX);
+    let initial_train = history.prefix_before(cutoff);
     let mut learned = Score::default();
     let mut plain = Score::default();
     let mut proximity = Score::default();
     let mut query_rows = Vec::new();
-    for test_tx in &history.transactions()[split..] {
+    let test_transactions: Vec<_> = all_transactions
+        .iter()
+        .filter(|tx| tx.committer_timestamp >= cutoff)
+        .collect();
+    let test_transaction_count = test_transactions.len();
+    for test_tx in test_transactions {
         if test_tx.paths.len() < 2 {
             continue;
         }
-        let full_prefix = history.prefix(split);
+        let full_prefix = history.prefix_before(test_tx.committer_timestamp);
+        if !history
+            .through_timestamp(test_tx.committer_timestamp)
+            .commits()
+            .any(|commit| commit == test_tx.commit)
+        {
+            continue;
+        }
         let query_count = test_tx.paths.len().div_ceil(2);
         let queries = &test_tx.paths[..query_count];
         let query_set: BTreeSet<_> = queries.iter().map(|p| full_prefix.canonical(p)).collect();
         let truth: BTreeSet<_> = test_tx.paths[query_count..]
             .iter()
-            .map(|p| full_prefix.canonical(p))
+            .map(|p| {
+                full_prefix
+                    .display_path(p)
+                    .unwrap_or_else(|| full_prefix.canonical(p))
+            })
             .filter(|p| !query_set.contains(p))
             .collect();
         if truth.is_empty() {
@@ -194,16 +223,18 @@ fn run() -> Result<(), String> {
         learned.add(&preds, &truth);
         plain.add(&plain_preds, &truth);
         proximity.add(&proximity_preds, &truth);
-        query_rows.push(format!("{{\"commit\":\"{}\",\"inputs\":{},\"truth\":{},\"thresholded_cochange\":{},\"plain_cochange_count\":{},\"basename_proximity\":{}}}",
-            test_tx.commit, json_paths(queries), json_set(&truth), json_pred(&preds), json_pred(&plain_preds), json_pred(&proximity_preds)));
+        query_rows.push(format!("{{\"commit\":\"{}\",\"training_cutoff_committer_time\":{},\"train_transactions\":{},\"inputs\":{},\"truth\":{},\"thresholded_cochange\":{},\"plain_cochange_count\":{},\"basename_proximity\":{}}}",
+            test_tx.commit, test_tx.committer_timestamp, full_prefix.transaction_count(), json_paths(queries), json_set(&truth), json_pred(&preds), json_pred(&plain_preds), json_pred(&proximity_preds)));
     }
     println!(
-        "{{\"schema_version\":1,\"repo\":\"{}\",\"transactions\":{},\"skipped_non_utf8_transactions\":{},\"train_transactions\":{},\"test_transactions\":{},\"train_fraction\":{:.4},\"query_rule\":\"lexicographically first ceil(half) of changed paths; predict the remainder\",\"false_advisory_denominator\":\"all emitted suggestions across evaluated queries\",\"latency_ms\":{},\"baselines\":{{\"thresholded_cochange\":{},\"plain_cochange_count\":{},\"basename_proximity\":{}}}}}",
-        json_escape(&args[0]),
+        "{{\"schema_version\":1,\"repo\":\"{}\",\"transactions\":{},\"skipped_non_utf8_transactions\":{},\"skipped_ambiguous_identity_transactions\":{},\"train_transactions_at_cutoff\":{},\"test_transactions_at_cutoff\":{},\"training_cutoff_committer_time\":{},\"train_fraction_target\":{:.4},\"split_rule\":\"equal timestamps grouped; each query trains on committer timestamps strictly earlier than that held-out transaction\",\"query_rule\":\"lexicographically first ceil(half) of changed paths; predict the remainder\",\"false_advisory_denominator\":\"all emitted suggestions across evaluated queries\",\"latency_ms\":{},\"baselines\":{{\"thresholded_cochange\":{},\"plain_cochange_count\":{},\"basename_proximity\":{}}}}}",
+        escape_json_string(&args[0]),
         n,
         history.skipped_non_utf8_transactions(),
-        split,
-        n.saturating_sub(split),
+        history.skipped_ambiguous_identity_transactions(),
+        initial_train.transaction_count(),
+        test_transaction_count,
+        cutoff,
         fraction,
         start.elapsed().as_millis(),
         learned.json(),
