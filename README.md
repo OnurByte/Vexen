@@ -96,7 +96,7 @@ cargo bench --bench cochange -- /path/to/repo.git 0.8 --per-query out.jsonl
 
 The benchmark reads a **local** repository; reproduction details are in [docs/benchmarks.md](docs/benchmarks.md). The plan and task list live in [docs/specification.md](docs/specification.md), progress in [docs/progress.md](docs/progress.md), and the look and voice in [brand.md](brand.md).
 
-On Windows one test (`control_separator_in_path…`) cannot create its fixture file name and fails; CI skips it.
+Two fixtures need file names some systems refuse (control characters on Windows, non-UTF-8 bytes on macOS); CI skips them there.
 
 ## License
 
