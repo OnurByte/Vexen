@@ -30,7 +30,7 @@ Multiple processes can use one store. Writes are immediate transactions with a b
 
 ## Known limits
 
-- Client support: Claude Code 2.1.309 on Windows is `client-smoke-tested` (one real session started the server from an installer-written config and a `vexen_check` call returned the recorded failure). Every other client is `config-tested` only: formats are covered by tests, nothing live. A Codex check could not run because the Codex build used for it could not call any tools.
+- Client support: Claude Code 2.1.309 and OpenCode 2.2.5, each on Windows, are `client-smoke-tested` (one real session each started the server from an installer-written config and a `vexen_check` call returned the recorded failure; OpenCode ran with the EVREN glm-5.3 model). Every other client is `config-tested` only: formats are covered by tests, nothing live. A Codex check could not run because the Codex build available could not call any tools.
 - Re-serializing a JSON config normalizes its whitespace and may alter numbers beyond 64-bit precision.
 - Release archives are checksummed (SHA-256), and carry GitHub build-provenance attestations when the attestation step succeeds: `gh attestation verify <archive> --repo OnurByte/Vexen`. They are not signed with a project-held key.
 - Windows and macOS each skip one test fixture the OS cannot create (see the README).
