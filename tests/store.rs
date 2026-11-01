@@ -261,3 +261,249 @@ fn derived_search_projection_is_rebuilt_from_immutable_events_on_open() {
         0
     );
 }
+
+#[test]
+fn read_only_open_searches_without_writing_or_rebuilding() {
+    let repo = Repo::new();
+    Store::initialize(&repo.0).unwrap();
+    let writer = Store::open(&repo.0).unwrap();
+    writer
+        .append(event("reader", "read only lookup phrase"))
+        .unwrap();
+    drop(writer);
+    let db = repo.0.join(".vexen/state.sqlite");
+    let before = fs::read(&db).unwrap();
+    let reader = Store::open_read_only(&repo.0).unwrap();
+    assert_eq!(
+        reader
+            .search(StoreQuery {
+                text: "lookup".into(),
+                limit: 10
+            })
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(reader.append(event("no-write", "must not write")).is_err());
+    drop(reader);
+    assert_eq!(fs::read(&db).unwrap(), before);
+}
+
+#[test]
+fn fts_search_treats_operators_quotes_and_punctuation_as_literal_text() {
+    let repo = Repo::new();
+    Store::initialize(&repo.0).unwrap();
+    let store = Store::open(&repo.0).unwrap();
+    store.append(event("alpha", "alpha only phrase")).unwrap();
+    store.append(event("beta", "beta only phrase")).unwrap();
+    let literal = store
+        .append(event("literal", "alpha OR beta literal"))
+        .unwrap();
+    let found = store
+        .search(StoreQuery {
+            text: "alpha OR beta".into(),
+            limit: 10,
+        })
+        .unwrap();
+    assert_eq!(
+        found.iter().map(|r| r.id.clone()).collect::<Vec<_>>(),
+        vec![literal.clone()]
+    );
+    let found = store
+        .search(StoreQuery {
+            text: "alpha \"OR\" (beta) *".into(),
+            limit: 10,
+        })
+        .unwrap();
+    assert_eq!(
+        found.iter().map(|r| r.id.clone()).collect::<Vec<_>>(),
+        vec![literal]
+    );
+}
+
+#[test]
+fn integrity_rejects_tampered_parent_and_unknown_event_kind() {
+    let repo = Repo::new();
+    Store::initialize(&repo.0).unwrap();
+    let store = Store::open(&repo.0).unwrap();
+    let first = store.append(event("first-root", "first root")).unwrap();
+    let other = store.append(event("second-root", "second root")).unwrap();
+    store
+        .outcome(
+            first.clone(),
+            NewOutcome {
+                idempotency_key: "run".into(),
+                test_id: "cargo test x".into(),
+                exit_code: 1,
+                output_sha256: None,
+            },
+        )
+        .unwrap();
+    drop(store);
+    let db = repo.0.join(".vexen/state.sqlite");
+    let conn = rusqlite::Connection::open(&db).unwrap();
+    conn.execute_batch("DROP TRIGGER events_no_update;")
+        .unwrap();
+    conn.execute(
+        "UPDATE events SET parent_id=?1 WHERE kind='outcome'",
+        [other.as_str()],
+    )
+    .unwrap();
+    drop(conn);
+    assert!(Store::open_read_only(&repo.0).is_err());
+
+    let repo = Repo::new();
+    Store::initialize(&repo.0).unwrap();
+    let store = Store::open(&repo.0).unwrap();
+    store.append(event("kind", "kind tamper")).unwrap();
+    drop(store);
+    let db = repo.0.join(".vexen/state.sqlite");
+    let conn = rusqlite::Connection::open(&db).unwrap();
+    conn.execute_batch("DROP TRIGGER events_no_update;")
+        .unwrap();
+    conn.execute("UPDATE events SET kind='mystery'", [])
+        .unwrap();
+    drop(conn);
+    assert!(Store::open_read_only(&repo.0).is_err());
+}
+
+#[test]
+fn integrity_authenticates_event_id_and_idempotency_key_columns() {
+    for tamper_id in [false, true] {
+        let repo = Repo::new();
+        Store::initialize(&repo.0).unwrap();
+        let store = Store::open(&repo.0).unwrap();
+        store.append(event("auth-column", "column tamper")).unwrap();
+        drop(store);
+        let db = repo.0.join(".vexen/state.sqlite");
+        let conn = rusqlite::Connection::open(&db).unwrap();
+        conn.execute_batch("DROP TRIGGER events_no_update;")
+            .unwrap();
+        if tamper_id {
+            conn.pragma_update(None, "foreign_keys", "OFF").unwrap();
+            let fake = "f".repeat(64);
+            conn.execute("UPDATE records SET id=?1", [&fake]).unwrap();
+            conn.execute("UPDATE events SET id=?1", [&fake]).unwrap();
+        } else {
+            conn.execute("UPDATE events SET idempotency_key='rewritten-key'", [])
+                .unwrap();
+        }
+        drop(conn);
+        assert!(Store::open_read_only(&repo.0).is_err());
+    }
+}
+
+#[test]
+fn failed_schema_migration_rolls_back_all_partial_ddl() {
+    let repo = Repo::new();
+    let db = repo.0.join(".vexen");
+    fs::create_dir_all(&db).unwrap();
+    let db_file = db.join("state.sqlite");
+    let conn = rusqlite::Connection::open(&db_file).unwrap();
+    conn.execute("CREATE TABLE records (sentinel TEXT)", [])
+        .unwrap();
+    drop(conn);
+    assert!(Store::initialize(&repo.0).is_err());
+    let conn = rusqlite::Connection::open(&db_file).unwrap();
+    let metadata_exists: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='metadata')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let events_exists: bool = conn
+        .query_row(
+            "SELECT EXISTS(SELECT 1 FROM sqlite_schema WHERE type='table' AND name='events')",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    let version: u32 = conn
+        .pragma_query_value(None, "user_version", |r| r.get(0))
+        .unwrap();
+    assert!(!metadata_exists);
+    assert!(!events_exists);
+    assert_eq!(version, 0);
+    conn.execute("DROP TABLE records", []).unwrap();
+    drop(conn);
+    Store::initialize(&repo.0).unwrap();
+    assert_eq!(
+        Store::open_read_only(&repo.0)
+            .unwrap()
+            .schema_version()
+            .unwrap(),
+        1
+    );
+}
+
+#[test]
+fn supersession_is_a_typed_append_only_event_and_survives_projection_rebuild() {
+    let repo = Repo::new();
+    Store::initialize(&repo.0).unwrap();
+    let store = Store::open(&repo.0).unwrap();
+    let id = store
+        .append(event("supersede-root", "old observation"))
+        .unwrap();
+    let supersession = store
+        .supersede(
+            id.clone(),
+            "replaced".into(),
+            "newer evidence recorded".into(),
+        )
+        .unwrap();
+    assert_eq!(
+        store.search(StoreQuery::default()).unwrap()[0].status,
+        vexen::store::RecordStatus::Superseded
+    );
+    let chain = store.get(id.clone()).unwrap();
+    assert_eq!(chain.events.len(), 2);
+    assert_eq!(chain.events[1].id, supersession);
+    assert_eq!(chain.events[1].kind, EventKind::Supersession);
+    assert!(matches!(
+        chain.events[1].payload,
+        EventPayload::Supersession { .. }
+    ));
+    assert!(store.verify_integrity().unwrap());
+    drop(store);
+    let reopened = Store::open_read_only(&repo.0).unwrap();
+    assert_eq!(
+        reopened.search(StoreQuery::default()).unwrap()[0].status,
+        vexen::store::RecordStatus::Superseded
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn repository_identity_preserves_non_utf8_canonical_path_bytes() {
+    use std::os::unix::ffi::OsStringExt;
+    let suffix = format!("-{}", std::process::id());
+    let mut raw = b"vexen-store-\xff".to_vec();
+    raw.extend_from_slice(suffix.as_bytes());
+    let raw_path = std::env::temp_dir().join(std::ffi::OsString::from_vec(raw));
+    let unicode_path = std::env::temp_dir().join(format!("vexen-store-\u{fffd}{suffix}"));
+    for path in [&raw_path, &unicode_path] {
+        fs::create_dir_all(path).unwrap();
+        assert!(
+            Command::new("git")
+                .arg("init")
+                .arg("-q")
+                .arg(path)
+                .status()
+                .unwrap()
+                .success()
+        );
+        Store::initialize(path).unwrap();
+    }
+    let raw_id = Store::open_read_only(&raw_path)
+        .unwrap()
+        .repo_id()
+        .to_string();
+    let unicode_id = Store::open_read_only(&unicode_path)
+        .unwrap()
+        .repo_id()
+        .to_string();
+    assert_ne!(raw_id, unicode_id);
+    let _ = fs::remove_dir_all(raw_path);
+    let _ = fs::remove_dir_all(unicode_path);
+}

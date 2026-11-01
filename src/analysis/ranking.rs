@@ -50,11 +50,8 @@ pub fn rank_applicable(records: &[MemoryRecord], ctx: &RepoContext, limit: usize
             record.anchor_sha256.clone(),
             record.conditions.clone(),
         );
-        if !accepted {
-            if seen_groups.contains(&group) {
-                continue;
-            }
-            seen_groups.push(group.clone());
+        if !accepted && seen_groups.contains(&group) {
+            continue;
         }
         let related: Vec<_> = records
             .iter()
@@ -78,6 +75,11 @@ pub fn rank_applicable(records: &[MemoryRecord], ctx: &RepoContext, limit: usize
         let conflict = !accepted && has_failure && has_success;
         if !accepted && !has_failure {
             continue;
+        }
+        if !accepted {
+            // Do not consume a group until it can produce an advisory. This
+            // keeps success-only records from suppressing a later failure.
+            seen_groups.push(group);
         }
         let status = if accepted {
             AdvisoryStatus::AcceptedDecision

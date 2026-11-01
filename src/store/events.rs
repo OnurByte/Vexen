@@ -1,14 +1,21 @@
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// Stable identifier for an event in one checkout's append-only log.
-#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize, JsonSchema)]
 #[serde(transparent)]
 pub struct EventId(pub(crate) String);
 
 impl EventId {
     pub fn as_str(&self) -> &str {
         &self.0
+    }
+}
+
+impl From<String> for EventId {
+    fn from(value: String) -> Self {
+        Self(value)
     }
 }
 
@@ -19,17 +26,18 @@ impl fmt::Display for EventId {
 }
 
 /// Distinguishes a recorded attempt from a human-accepted decision.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum EventKind {
     Attempt,
     AcceptedDecision,
     Outcome,
+    Supersession,
 }
 
 /// Input for a new immutable event. `anchor_path` is repo-relative and
 /// `anchor_sha256` hashes the working-file contents at the recorded state.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 pub struct NewEvent {
     pub idempotency_key: String,
     pub kind: EventKind,
@@ -41,7 +49,7 @@ pub struct NewEvent {
 }
 
 /// Allowlisted observed test metadata; raw process output is never accepted.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 pub struct NewOutcome {
     pub idempotency_key: String,
     pub test_id: String,
@@ -50,10 +58,11 @@ pub struct NewOutcome {
 }
 
 /// Persisted event and its deterministic hash-chain metadata.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 pub struct Event {
     pub id: EventId,
     pub parent_id: Option<EventId>,
+    pub idempotency_key: String,
     pub sequence: u64,
     pub kind: EventKind,
     pub payload: EventPayload,
@@ -61,15 +70,19 @@ pub struct Event {
     pub hash: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum EventPayload {
     Record(NewEvent),
     Outcome(NewOutcome),
+    Supersession {
+        idempotency_key: String,
+        reason: String,
+    },
 }
 
 /// A root event and any outcome events appended to it, in sequence order.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 pub struct EventChain {
     pub events: Vec<Event>,
 }
@@ -91,10 +104,11 @@ pub struct MemoryRecord {
 }
 
 /// Evidence maturity in the projection; `observed` is not a validity claim.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RecordStatus {
     Candidate,
     AcceptedDecision,
     Observed,
+    Superseded,
 }

@@ -263,14 +263,67 @@ fn conflicting_observed_results_abstain_and_candidates_never_look_observed() {
         RecordStatus::Observed,
         vec![outcome("b", 0)],
     );
-    let items = rank_applicable(&[failed.clone(), passed], &ctx(&repo, &["src/lib.rs"]), 3);
+    let items = rank_applicable(
+        &[failed.clone(), passed.clone()],
+        &ctx(&repo, &["src/lib.rs"]),
+        3,
+    );
     assert_eq!(items.len(), 1);
     assert_eq!(items[0].status, AdvisoryStatus::Conflicted);
+    let reversed = rank_applicable(&[passed, failed.clone()], &ctx(&repo, &["src/lib.rs"]), 3);
+    assert_eq!(reversed.len(), 1);
+    assert_eq!(reversed[0].status, AdvisoryStatus::Conflicted);
     assert!(!items[0].text.to_lowercase().contains("verified"));
     let mut candidate = failed;
     candidate.status = RecordStatus::Candidate;
     candidate.outcomes.clear();
     assert!(rank_applicable(&[candidate], &ctx(&repo, &["src/lib.rs"]), 3).is_empty());
+}
+
+#[test]
+fn empty_query_paths_allow_text_only_context_with_scoped_anchor_checks() {
+    let repo = Repo::new();
+    let r = record(
+        &repo,
+        "failed",
+        "src/lib.rs",
+        Some(repo.head()),
+        RecordStatus::Observed,
+        vec![outcome("a", 1)],
+    );
+    let text_only = ctx(&repo, &[]);
+    assert_eq!(check_applicability(&r, &text_only), Eligibility::Eligible);
+    let mut wrong_repo = r.clone();
+    wrong_repo.repo_id = "unrelated".into();
+    assert_eq!(
+        check_applicability(&wrong_repo, &text_only),
+        Eligibility::WrongScope
+    );
+}
+
+#[test]
+fn typed_supersession_is_ineligible_and_never_advisory() {
+    let repo = Repo::new();
+    let mut r = record(
+        &repo,
+        "old failed approach",
+        "src/lib.rs",
+        Some(repo.head()),
+        RecordStatus::Observed,
+        vec![outcome("a", 1)],
+    );
+    let store = Store::open(&repo.0).unwrap();
+    store
+        .supersede(
+            r.id.clone(),
+            "replacement".into(),
+            "replaced by later evidence".into(),
+        )
+        .unwrap();
+    r.status = RecordStatus::Superseded;
+    let context = ctx(&repo, &["src/lib.rs"]);
+    assert_eq!(check_applicability(&r, &context), Eligibility::Superseded);
+    assert!(rank_applicable(&[r], &context, 3).is_empty());
 }
 
 #[test]

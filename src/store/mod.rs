@@ -43,6 +43,8 @@ pub enum StoreError {
     Integrity(String),
     #[error("unsupported or inconsistent store schema")]
     Schema,
+    #[error("store was opened read-only")]
+    ReadOnly,
     #[error(transparent)]
     Sqlite(#[from] rusqlite::Error),
     #[error(transparent)]
@@ -58,6 +60,7 @@ pub struct Store {
     root: PathBuf,
     repo_id: String,
     conn: Mutex<Connection>,
+    read_only: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -107,6 +110,16 @@ impl Store {
 
     /// Open an initialized store. Does not create directories or databases.
     pub fn open(repo_root: &Path) -> Result<Self> {
+        Self::open_mode(repo_root, false)
+    }
+
+    /// Open an initialized store without changing database, projection, or
+    /// filesystem state. Use this path for read-only check/explain operations.
+    pub fn open_read_only(repo_root: &Path) -> Result<Self> {
+        Self::open_mode(repo_root, true)
+    }
+
+    fn open_mode(repo_root: &Path, read_only: bool) -> Result<Self> {
         let root = canonical_checkout(repo_root)?;
         let dir = root.join(".vexen");
         let db = dir.join("state.sqlite");
@@ -115,25 +128,52 @@ impl Store {
         }
         reject_symlink(&dir)?;
         reject_symlink(&db)?;
+        if read_only {
+            ensure_private_dir(&dir)?;
+        } else {
+            set_dir_mode(&dir)?;
+            set_file_mode(&db)?;
+        }
         let rid = repo_id(&root);
-        let mut conn = Connection::open_with_flags(&db, OpenFlags::SQLITE_OPEN_READ_WRITE)?;
+        let flags = if read_only {
+            OpenFlags::SQLITE_OPEN_READ_ONLY
+        } else {
+            OpenFlags::SQLITE_OPEN_READ_WRITE
+        };
+        let mut conn = Connection::open_with_flags(&db, flags)?;
         conn.busy_timeout(BUSY_TIMEOUT)?;
-        configure(&conn)?;
+        if read_only {
+            configure_read_only(&conn)?;
+        } else {
+            configure(&conn)?;
+        }
         let version: u32 = conn.pragma_query_value(None, "user_version", |r| r.get(0))?;
-        if version == 0 {
+        if version == 0 || (read_only && version != SCHEMA_VERSION) {
             return Err(StoreError::Schema);
         }
-        migrations::migrate(&mut conn, &rid).map_err(map_migration_error)?;
-        set_file_mode(&db)?;
+        if read_only {
+            let stored: String =
+                conn.query_row("SELECT value FROM metadata WHERE key='repo_id'", [], |r| {
+                    r.get(0)
+                })?;
+            if stored != rid {
+                return Err(StoreError::Schema);
+            }
+        } else {
+            migrations::migrate(&mut conn, &rid).map_err(map_migration_error)?;
+        }
         let store = Self {
             root,
             repo_id: rid,
             conn: Mutex::new(conn),
+            read_only,
         };
         if !store.verify_integrity()? {
             return Err(StoreError::Integrity("event hash chain mismatch".into()));
         }
-        store.rebuild_projection()?;
+        if !read_only {
+            store.rebuild_projection()?;
+        }
         Ok(store)
     }
 
@@ -154,6 +194,9 @@ impl Store {
     /// Append an attempt or accepted decision. Repeated identical keys return
     /// the existing ID; reusing a key for different data is an error.
     pub fn append(&self, event: NewEvent) -> Result<EventId> {
+        if self.read_only {
+            return Err(StoreError::ReadOnly);
+        }
         validate_event(&event)?;
         let payload = EventPayload::Record(event.clone());
         let key = event.idempotency_key.clone();
@@ -190,6 +233,9 @@ impl Store {
     /// Append observed test metadata linked to its record. Does not mark the
     /// record supported or current; later validity checks decide applicability.
     pub fn outcome(&self, id: EventId, data: NewOutcome) -> Result<EventId> {
+        if self.read_only {
+            return Err(StoreError::ReadOnly);
+        }
         validate_outcome(&data)?;
         let mut conn = self.lock()?;
         let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
@@ -232,8 +278,50 @@ impl Store {
         )?;
         outcomes.push(data);
         tx.execute(
-            "UPDATE records SET outcomes_json=?2,status='observed' WHERE id=?1",
+            "UPDATE records SET outcomes_json=?2,status=CASE WHEN status='superseded' THEN status ELSE 'observed' END WHERE id=?1",
             params![parent, serde_json::to_string(&outcomes)?],
+        )?;
+        tx.commit()?;
+        Ok(event_id)
+    }
+
+    /// Append a typed supersession marker without deleting or rewriting evidence.
+    pub fn supersede(&self, target: EventId, key: String, reason: String) -> Result<EventId> {
+        if self.read_only {
+            return Err(StoreError::ReadOnly);
+        }
+        validate_supersession(&key, &reason)?;
+        let mut conn = self.lock()?;
+        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let parent = root_for(&tx, &target)?.ok_or_else(|| StoreError::NotFound(target.clone()))?;
+        let full_key = format!("supersession:{parent}:{key}");
+        let payload = EventPayload::Supersession {
+            idempotency_key: key,
+            reason,
+        };
+        if let Some((existing_id, json)) = existing_key(&tx, &full_key)? {
+            if serde_json::from_str::<EventPayload>(&json)? != payload {
+                return Err(StoreError::IdempotencyConflict);
+            }
+            tx.commit()?;
+            return Ok(EventId(existing_id));
+        }
+        let event_id = EventId(stable_id(&self.repo_id, &full_key));
+        let sequence = next_sequence(&tx)?;
+        let (_, prev_hash) = previous_hash(&tx)?;
+        insert_event(
+            &tx,
+            &self.repo_id,
+            &event_id,
+            Some(&parent),
+            sequence,
+            &full_key,
+            &payload,
+            &prev_hash,
+        )?;
+        tx.execute(
+            "UPDATE records SET status='superseded' WHERE id=?1",
+            [&parent],
         )?;
         tx.commit()?;
         Ok(event_id)
@@ -242,7 +330,7 @@ impl Store {
     pub fn get(&self, id: EventId) -> Result<EventChain> {
         let conn = self.lock()?;
         let root = root_for(&conn, &id)?.ok_or_else(|| StoreError::NotFound(id.clone()))?;
-        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,kind,payload_json,previous_hash,hash FROM events WHERE id=?1 OR parent_id=?1 ORDER BY sequence")?;
+        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,idempotency_key,kind,payload_json,previous_hash,hash FROM events WHERE id=?1 OR parent_id=?1 ORDER BY sequence")?;
         let rows = stmt.query_map([root], decode_event)?;
         Ok(EventChain {
             events: rows.collect::<std::result::Result<Vec<_>, _>>()?,
@@ -252,7 +340,7 @@ impl Store {
     /// Read every immutable event in append order for export/import tooling.
     pub fn events(&self) -> Result<Vec<Event>> {
         let conn = self.lock()?;
-        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,kind,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
+        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,idempotency_key,kind,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
         let rows = stmt.query_map([], decode_event)?;
         Ok(rows.collect::<std::result::Result<Vec<_>, _>>()?)
     }
@@ -272,7 +360,10 @@ impl Store {
         let rows = if query.text.trim().is_empty() {
             stmt.query_map([limit as i64], decode_record)?
         } else {
-            stmt.query_map(params![query.text, limit as i64], decode_record)?
+            let Some(literal) = literal_fts_query(&query.text) else {
+                return Ok(Vec::new());
+            };
+            stmt.query_map(params![literal, limit as i64], decode_record)?
         };
         let mut records = rows.collect::<std::result::Result<Vec<_>, _>>()?;
         for record in &mut records {
@@ -288,40 +379,72 @@ impl Store {
         if check != "ok" {
             return Ok(false);
         }
-        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,idempotency_key,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
-        let rows = stmt.query_map([], |r| {
-            Ok((
-                r.get::<_, String>(0)?,
-                r.get::<_, Option<String>>(1)?,
-                r.get::<_, i64>(2)?,
-                r.get::<_, String>(3)?,
-                r.get::<_, String>(4)?,
-                r.get::<_, String>(5)?,
-                r.get::<_, String>(6)?,
-            ))
-        })?;
+        let mut stmt = conn.prepare("SELECT id,parent_id,sequence,idempotency_key,kind,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
+        let rows = stmt.query_map([], decode_event)?;
         let mut previous = String::new();
+        let mut roots = std::collections::HashSet::new();
         for (expected_sequence, row) in (1i64..).zip(rows) {
-            let (id, parent, seq, key, json, prev, hash) = row?;
-            if seq != expected_sequence || prev != previous || id != stable_id(&self.repo_id, &key)
+            let event = row?;
+            if event.sequence != expected_sequence as u64
+                || event.previous_hash != previous
+                || event.id.0 != stable_id(&self.repo_id, &event.idempotency_key)
             {
                 return Ok(false);
             }
-            if let Some(ref p) = parent
-                && (p == &id
-                    || !conn.query_row(
-                        "SELECT EXISTS(SELECT 1 FROM events WHERE id=?1 AND parent_id IS NULL)",
-                        [p],
-                        |r| r.get::<_, bool>(0),
-                    )?)
+            match &event.payload {
+                EventPayload::Record(data) => {
+                    if event.parent_id.is_some()
+                        || event.kind != data.kind
+                        || !matches!(data.kind, EventKind::Attempt | EventKind::AcceptedDecision)
+                        || event.idempotency_key != data.idempotency_key
+                    {
+                        return Ok(false);
+                    }
+                    roots.insert(event.id.0.clone());
+                }
+                EventPayload::Outcome(data) => {
+                    let Some(parent) = &event.parent_id else {
+                        return Ok(false);
+                    };
+                    if event.kind != EventKind::Outcome
+                        || !roots.contains(parent.as_str())
+                        || event.idempotency_key
+                            != format!("outcome:{parent}:{}", data.idempotency_key)
+                    {
+                        return Ok(false);
+                    }
+                }
+                EventPayload::Supersession {
+                    idempotency_key, ..
+                } => {
+                    let Some(parent) = &event.parent_id else {
+                        return Ok(false);
+                    };
+                    if event.kind != EventKind::Supersession
+                        || !roots.contains(parent.as_str())
+                        || event.idempotency_key
+                            != format!("supersession:{parent}:{idempotency_key}")
+                    {
+                        return Ok(false);
+                    }
+                }
+            }
+            if event_hash(
+                &self.repo_id,
+                &EventHashInput {
+                    id: event.id.as_str(),
+                    parent: event.parent_id.as_ref().map(EventId::as_str),
+                    sequence: event.sequence,
+                    key: &event.idempotency_key,
+                    kind: kind_name(event.kind),
+                    previous: &event.previous_hash,
+                    payload: &event.payload,
+                },
+            )? != event.hash
             {
                 return Ok(false);
             }
-            let payload: EventPayload = serde_json::from_str(&json)?;
-            if event_hash(&self.repo_id, seq as u64, prev.as_str(), &payload)? != hash {
-                return Ok(false);
-            }
-            previous = hash;
+            previous = event.hash;
         }
         Ok(true)
     }
@@ -331,7 +454,7 @@ impl Store {
         let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
         tx.execute("DELETE FROM records", [])?;
         let rows = {
-            let mut stmt = tx.prepare("SELECT id,parent_id,sequence,kind,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
+            let mut stmt = tx.prepare("SELECT id,parent_id,sequence,idempotency_key,kind,payload_json,previous_hash,hash FROM events ORDER BY sequence")?;
             stmt.query_map([], decode_event)?
                 .collect::<std::result::Result<Vec<_>, _>>()?
         };
@@ -358,10 +481,19 @@ impl Store {
                         )?;
                         outcomes.push(outcome);
                         tx.execute(
-                            "UPDATE records SET outcomes_json=?2,status='observed' WHERE id=?1",
+                            "UPDATE records SET outcomes_json=?2,status=CASE WHEN status='superseded' THEN status ELSE 'observed' END WHERE id=?1",
                             params![parent.0, serde_json::to_string(&outcomes)?],
                         )?;
                     }
+                }
+                EventPayload::Supersession { .. } => {
+                    let parent = event.parent_id.ok_or_else(|| {
+                        StoreError::Integrity("supersession missing parent".into())
+                    })?;
+                    tx.execute(
+                        "UPDATE records SET status='superseded' WHERE id=?1",
+                        [&parent.0],
+                    )?;
                 }
             }
         }
@@ -379,18 +511,16 @@ impl Store {
 fn canonical_checkout(path: &Path) -> Result<PathBuf> {
     let canonical =
         fs::canonicalize(path).map_err(|e| StoreError::InvalidCheckout(e.to_string()))?;
-    let out = Command::new("git")
+    let cdup = Command::new("git")
         .arg("-C")
         .arg(&canonical)
-        .args(["rev-parse", "--show-toplevel"])
+        .args(["rev-parse", "--show-cdup"])
         .output()
         .map_err(|e| StoreError::InvalidCheckout(e.to_string()))?;
-    if !out.status.success() {
+    if !cdup.status.success() {
         return Err(StoreError::InvalidCheckout("not a Git checkout".into()));
     }
-    let top = PathBuf::from(String::from_utf8_lossy(&out.stdout).trim());
-    let top = fs::canonicalize(top)?;
-    if top != canonical {
+    if !cdup.stdout.iter().all(u8::is_ascii_whitespace) {
         return Err(StoreError::InvalidCheckout(
             "path must be the canonical checkout root".into(),
         ));
@@ -409,9 +539,30 @@ fn canonical_checkout(path: &Path) -> Result<PathBuf> {
 }
 
 fn repo_id(root: &Path) -> String {
-    hex(&Sha256::digest(
-        root.as_os_str().to_string_lossy().as_bytes(),
-    ))
+    hex(&Sha256::digest(canonical_path_bytes(root)))
+}
+#[cfg(unix)]
+fn canonical_path_bytes(root: &Path) -> Vec<u8> {
+    use std::os::unix::ffi::OsStrExt;
+    root.as_os_str().as_bytes().to_vec()
+}
+#[cfg(windows)]
+fn canonical_path_bytes(root: &Path) -> Vec<u8> {
+    use std::os::windows::ffi::OsStrExt;
+    root.as_os_str()
+        .encode_wide()
+        .flat_map(u16::to_le_bytes)
+        .collect()
+}
+#[cfg(not(any(unix, windows)))]
+fn canonical_path_bytes(root: &Path) -> Vec<u8> {
+    root.as_os_str().as_encoded_bytes().to_vec()
+}
+fn literal_fts_query(text: &str) -> Option<String> {
+    if !text.chars().any(char::is_alphanumeric) {
+        return None;
+    }
+    Some(format!("\"{}\"", text.replace('"', "\"\"")))
 }
 fn stable_id(repo: &str, key: &str) -> String {
     hex(&Sha256::digest(format!("{repo}\n{key}").as_bytes()))
@@ -424,23 +575,52 @@ fn kind_name(kind: EventKind) -> &'static str {
         EventKind::Attempt => "attempt",
         EventKind::AcceptedDecision => "accepted_decision",
         EventKind::Outcome => "outcome",
+        EventKind::Supersession => "supersession",
     }
 }
 fn initial_status(kind: EventKind) -> &'static str {
     match kind {
         EventKind::Attempt => "candidate",
         EventKind::AcceptedDecision => "accepted_decision",
-        EventKind::Outcome => "candidate",
+        EventKind::Outcome | EventKind::Supersession => "candidate",
     }
 }
-fn event_hash(repo: &str, sequence: u64, previous: &str, payload: &EventPayload) -> Result<String> {
-    let bytes = serde_json::to_vec(payload)?;
-    let mut digest = Sha256::new();
-    digest.update(repo.as_bytes());
-    digest.update(sequence.to_be_bytes());
-    digest.update(previous.as_bytes());
-    digest.update(bytes);
-    Ok(hex(&digest.finalize()))
+#[derive(Serialize)]
+struct EventHashEnvelope<'a> {
+    schema_version: u32,
+    repo_id: &'a str,
+    id: &'a str,
+    parent_id: Option<&'a str>,
+    sequence: u64,
+    idempotency_key: &'a str,
+    kind: &'a str,
+    previous_hash: &'a str,
+    payload: &'a EventPayload,
+}
+
+struct EventHashInput<'a> {
+    id: &'a str,
+    parent: Option<&'a str>,
+    sequence: u64,
+    key: &'a str,
+    kind: &'a str,
+    previous: &'a str,
+    payload: &'a EventPayload,
+}
+
+fn event_hash(repo: &str, event: &EventHashInput<'_>) -> Result<String> {
+    let envelope = EventHashEnvelope {
+        schema_version: SCHEMA_VERSION,
+        repo_id: repo,
+        id: event.id,
+        parent_id: event.parent,
+        sequence: event.sequence,
+        idempotency_key: event.key,
+        kind: event.kind,
+        previous_hash: event.previous,
+        payload: event.payload,
+    };
+    Ok(hex(&Sha256::digest(serde_json::to_vec(&envelope)?)))
 }
 fn validate_digest(value: &str, field: &str) -> Result<()> {
     if value.len() != 64 || !value.bytes().all(|b| b.is_ascii_hexdigit()) {
@@ -451,7 +631,7 @@ fn validate_digest(value: &str, field: &str) -> Result<()> {
     Ok(())
 }
 fn validate_event(e: &NewEvent) -> Result<()> {
-    if e.kind == EventKind::Outcome {
+    if matches!(e.kind, EventKind::Outcome | EventKind::Supersession) {
         return Err(StoreError::InvalidEvent(
             "outcomes must be appended with Store::outcome".into(),
         ));
@@ -513,11 +693,30 @@ fn validate_outcome(e: &NewOutcome) -> Result<()> {
     }
     Ok(())
 }
+fn validate_supersession(key: &str, reason: &str) -> Result<()> {
+    if key.is_empty()
+        || key.len() > 256
+        || reason.trim().is_empty()
+        || reason.len() > 1024
+        || reason.chars().any(char::is_control)
+    {
+        return Err(StoreError::InvalidEvent(
+            "supersession key and reason must be bounded non-empty metadata".into(),
+        ));
+    }
+    Ok(())
+}
 fn configure(conn: &Connection) -> rusqlite::Result<()> {
     conn.busy_timeout(BUSY_TIMEOUT)?;
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     conn.pragma_update(None, "synchronous", "FULL")?;
+    Ok(())
+}
+fn configure_read_only(conn: &Connection) -> rusqlite::Result<()> {
+    conn.busy_timeout(BUSY_TIMEOUT)?;
+    conn.pragma_update(None, "foreign_keys", "ON")?;
+    conn.pragma_update(None, "query_only", "ON")?;
     Ok(())
 }
 fn map_migration_error(e: rusqlite::Error) -> StoreError {
@@ -543,8 +742,24 @@ fn set_dir_mode(path: &Path) -> Result<()> {
     fs::set_permissions(path, fs::Permissions::from_mode(0o700))?;
     Ok(())
 }
+#[cfg(unix)]
+fn ensure_private_dir(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    let mode = fs::metadata(path)?.permissions().mode();
+    if mode & 0o077 != 0 {
+        return Err(StoreError::InvalidCheckout(format!(
+            "store directory permissions are too broad at {}",
+            path.display()
+        )));
+    }
+    Ok(())
+}
 #[cfg(not(unix))]
 fn set_dir_mode(_path: &Path) -> Result<()> {
+    Ok(())
+}
+#[cfg(not(unix))]
+fn ensure_private_dir(_path: &Path) -> Result<()> {
     Ok(())
 }
 #[cfg(unix)]
@@ -596,11 +811,23 @@ fn insert_event(
     prev_hash: &str,
 ) -> Result<()> {
     let json = serde_json::to_string(payload)?;
-    let hash = event_hash(repo, sequence, prev_hash, payload)?;
     let kind = match payload {
         EventPayload::Record(e) => kind_name(e.kind),
         EventPayload::Outcome(_) => "outcome",
+        EventPayload::Supersession { .. } => "supersession",
     };
+    let hash = event_hash(
+        repo,
+        &EventHashInput {
+            id: &id.0,
+            parent,
+            sequence,
+            key,
+            kind,
+            previous: prev_hash,
+            payload,
+        },
+    )?;
     tx.execute("INSERT INTO events(id,parent_id,sequence,idempotency_key,kind,payload_json,previous_hash,hash) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)",params![id.0,parent,sequence as i64,key,kind,json,prev_hash,hash])?;
     Ok(())
 }
@@ -618,29 +845,45 @@ fn decode_event(r: &rusqlite::Row<'_>) -> rusqlite::Result<Event> {
     let id: String = r.get(0)?;
     let parent: Option<String> = r.get(1)?;
     let seq: i64 = r.get(2)?;
-    let kind: String = r.get(3)?;
-    let json: String = r.get(4)?;
-    let previous_hash: String = r.get(5)?;
-    let hash: String = r.get(6)?;
+    let idempotency_key: String = r.get(3)?;
+    let kind: String = r.get(4)?;
+    let json: String = r.get(5)?;
+    let previous_hash: String = r.get(6)?;
+    let hash: String = r.get(7)?;
     let payload: EventPayload = serde_json::from_str(&json).map_err(|e| {
-        rusqlite::Error::FromSqlConversionFailure(4, rusqlite::types::Type::Text, Box::new(e))
+        rusqlite::Error::FromSqlConversionFailure(5, rusqlite::types::Type::Text, Box::new(e))
     })?;
-    let event_kind = if kind == "outcome" {
-        EventKind::Outcome
-    } else if kind == "accepted_decision" {
-        EventKind::AcceptedDecision
-    } else {
-        EventKind::Attempt
-    };
+    let event_kind = parse_event_kind(&kind)?;
+    match &payload {
+        EventPayload::Record(data)
+            if parent.is_none()
+                && data.kind == event_kind
+                && matches!(event_kind, EventKind::Attempt | EventKind::AcceptedDecision) => {}
+        EventPayload::Outcome(_) if parent.is_some() && event_kind == EventKind::Outcome => {}
+        EventPayload::Supersession { .. }
+            if parent.is_some() && event_kind == EventKind::Supersession => {}
+        _ => return Err(rusqlite::Error::InvalidQuery),
+    }
     Ok(Event {
         id: EventId(id),
         parent_id: parent.map(EventId),
+        idempotency_key,
         sequence: seq as u64,
         kind: event_kind,
         payload,
         previous_hash,
         hash,
     })
+}
+
+fn parse_event_kind(kind: &str) -> rusqlite::Result<EventKind> {
+    match kind {
+        "attempt" => Ok(EventKind::Attempt),
+        "accepted_decision" => Ok(EventKind::AcceptedDecision),
+        "outcome" => Ok(EventKind::Outcome),
+        "supersession" => Ok(EventKind::Supersession),
+        _ => Err(rusqlite::Error::InvalidQuery),
+    }
 }
 fn decode_record(r: &rusqlite::Row<'_>) -> rusqlite::Result<MemoryRecord> {
     let kind: String = r.get(1)?;
@@ -662,6 +905,7 @@ fn decode_record(r: &rusqlite::Row<'_>) -> rusqlite::Result<MemoryRecord> {
         "candidate" => RecordStatus::Candidate,
         "accepted_decision" => RecordStatus::AcceptedDecision,
         "observed" => RecordStatus::Observed,
+        "superseded" => RecordStatus::Superseded,
         _ => return Err(rusqlite::Error::InvalidQuery),
     };
     Ok(MemoryRecord {

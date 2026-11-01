@@ -92,10 +92,13 @@ pub fn check_applicability(record: &MemoryRecord, ctx: &RepoContext) -> Eligibil
         return Eligibility::WrongScope;
     };
     if record.repo_id != ctx.repo_id
-        || !ctx.query_paths.contains(&record.anchor_path)
+        || (!ctx.query_paths.is_empty() && !ctx.query_paths.contains(&record.anchor_path))
         || record.conditions != ctx.conditions
     {
         return Eligibility::WrongScope;
+    }
+    if record.status == crate::store::RecordStatus::Superseded {
+        return Eligibility::Superseded;
     }
     if record.anchor_path.is_empty()
         || record.anchor_sha256.len() != 64
