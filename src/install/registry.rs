@@ -56,7 +56,7 @@ const ALL: &[Adapter] = &[
         project: None,
         global: Some(".codex/config.toml"),
         detect: Some(".codex"),
-        support: "config-tested",
+        support: "client-smoke-tested (Codex CLI 0.166.0, Windows, same keys via -c)",
     },
     Adapter {
         id: "cursor",
