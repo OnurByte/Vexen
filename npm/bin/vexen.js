@@ -91,8 +91,13 @@ async function install(target, binary) {
   fs.mkdirSync(dir, { recursive: true });
   const archivePath = path.join(dir, `${name}.${target.ext}`);
   fs.writeFileSync(archivePath, archive);
-  // bsdtar (Windows 10+, macOS) and GNU tar both read tar.gz; bsdtar reads zip.
-  const unpacked = spawnSync("tar", ["-xf", archivePath, "-C", dir], { stdio: ["ignore", process.stderr, process.stderr] });
+  // bsdtar (Windows 10+, macOS) and GNU tar both read tar.gz; only bsdtar reads
+  // zip, so on Windows avoid a GNU tar that Git Bash may put first on PATH.
+  const tar =
+    process.platform === "win32"
+      ? path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe")
+      : "tar";
+  const unpacked = spawnSync(tar, ["-xf", archivePath, "-C", dir], { stdio: ["ignore", process.stderr, process.stderr] });
   fs.rmSync(archivePath, { force: true });
   if (unpacked.status !== 0 || !fs.existsSync(binary)) {
     fail("could not unpack the downloaded archive (is `tar` available?).");
