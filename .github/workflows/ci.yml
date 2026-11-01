@@ -29,7 +29,7 @@ jobs:
           # Known gaps, skipped per platform rather than hidden.
           case "${{ matrix.os }}" in
             windows-latest) skip="control_separator_in_path" ;;
-            macos-latest)   skip="non_utf8_paths_skip" ;;
+            macos-latest)   skip="non_utf8" ;;
             *)              skip="" ;;
           esac
           if [ -n "$skip" ]; then
