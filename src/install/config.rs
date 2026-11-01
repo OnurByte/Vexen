@@ -94,6 +94,14 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
             req.command,
         ));
     };
+    if fs::symlink_metadata(&path).is_ok_and(|m| m.file_type().is_symlink()) {
+        return Ok(refuse(
+            Some(path),
+            "the config file is a symbolic link, so it was left untouched (edit its target by hand)",
+            adapter,
+            req.command,
+        ));
+    }
     let existing = match fs::read_to_string(&path) {
         Ok(text) => Some(text),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
@@ -121,14 +129,70 @@ pub fn run(req: &Request) -> Result<Outcome, String> {
 }
 
 /// Returns the new file text and whether it differs from the old one.
+/// A JSON value that refuses duplicate object keys. `serde_json::Value` keeps
+/// the last one, which would silently drop the first on rewrite.
+struct Strict(Value);
+
+impl<'de> serde::Deserialize<'de> for Strict {
+    fn deserialize<D: serde::Deserializer<'de>>(d: D) -> Result<Self, D::Error> {
+        d.deserialize_any(StrictVisitor).map(Strict)
+    }
+}
+
+struct StrictVisitor;
+
+impl<'de> serde::de::Visitor<'de> for StrictVisitor {
+    type Value = Value;
+
+    fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("any JSON value")
+    }
+    fn visit_bool<E>(self, v: bool) -> Result<Value, E> {
+        Ok(Value::Bool(v))
+    }
+    fn visit_i64<E>(self, v: i64) -> Result<Value, E> {
+        Ok(Value::from(v))
+    }
+    fn visit_u64<E>(self, v: u64) -> Result<Value, E> {
+        Ok(Value::from(v))
+    }
+    fn visit_f64<E>(self, v: f64) -> Result<Value, E> {
+        Ok(Value::from(v))
+    }
+    fn visit_str<E>(self, v: &str) -> Result<Value, E> {
+        Ok(Value::String(v.to_owned()))
+    }
+    fn visit_unit<E>(self) -> Result<Value, E> {
+        Ok(Value::Null)
+    }
+    fn visit_seq<A: serde::de::SeqAccess<'de>>(self, mut seq: A) -> Result<Value, A::Error> {
+        let mut items = Vec::new();
+        while let Some(Strict(v)) = seq.next_element()? {
+            items.push(v);
+        }
+        Ok(Value::Array(items))
+    }
+    fn visit_map<A: serde::de::MapAccess<'de>>(self, mut map: A) -> Result<Value, A::Error> {
+        let mut out = Map::new();
+        while let Some(key) = map.next_key::<String>()? {
+            if out.contains_key(&key) {
+                return Err(serde::de::Error::custom(format!("duplicate key `{key}`")));
+            }
+            let Strict(v) = map.next_value()?;
+            out.insert(key, v);
+        }
+        Ok(Value::Object(out))
+    }
+}
+
 fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), String> {
     let crlf = existing.is_some_and(|t| t.contains("\r\n"));
     let mut root: Value = match existing {
         None => Value::Object(Map::new()),
         Some(t) if t.trim().is_empty() => Value::Object(Map::new()),
-        Some(t) => serde_json::from_str(t).map_err(|e| {
-            format!("not strict JSON (comments or a syntax error?), left untouched: {e}")
-        })?,
+        Some(t) => serde_json::from_str::<Strict>(t)
+            .map(|s| s.0)
+            .map_err(|e| format!("not strict JSON (comments, a syntax error or a duplicate key?), left untouched: {e}"))?,
     };
     let Value::Object(top) = &mut root else {
         return Err("top level is not a JSON object, left untouched".into());
@@ -266,24 +330,78 @@ fn edit_toml(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
     Ok((doc.to_string(), true))
 }
 
-/// Back up once, then write via a temp file in the same directory.
+/// Mode bits of an existing file, so copies are never more readable than it.
+#[cfg(unix)]
+fn mode_of(path: &Path) -> Option<u32> {
+    use std::os::unix::fs::PermissionsExt;
+    fs::metadata(path).ok().map(|m| m.permissions().mode() & 0o7777)
+}
+
+#[cfg(not(unix))]
+fn mode_of(_path: &Path) -> Option<u32> {
+    None
+}
+
+/// Create a file that must not exist yet, with the given mode from the first byte.
+fn create_new(path: &Path, mode: Option<u32>) -> std::io::Result<fs::File> {
+    let mut options = fs::OpenOptions::new();
+    options.write(true).create_new(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(mode.unwrap_or(0o666));
+    }
+    #[cfg(not(unix))]
+    let _ = mode;
+    options.open(path)
+}
+
+/// Back up once, then write via a fresh temp file in the same directory.
+/// The backup is created exclusively (never overwritten), the temp file is
+/// created exclusively with the original's mode, and the write is abandoned if
+/// the config changed since it was read.
 fn write_atomic(path: &Path, existing: Option<&str>, text: &str) -> Result<(), String> {
+    use std::io::Write;
     let dir = path.parent().ok_or("config path has no parent")?;
     fs::create_dir_all(dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
-    if existing.is_some() {
+    let mode = mode_of(path);
+    if let Some(original) = existing {
         let mut backup = path.as_os_str().to_owned();
         backup.push(".vexen-backup");
         let backup = PathBuf::from(backup);
-        if !backup.exists() {
-            fs::copy(path, &backup).map_err(|e| format!("cannot back up {}: {e}", path.display()))?;
+        match create_new(&backup, mode) {
+            Ok(mut f) => f
+                .write_all(original.as_bytes())
+                .map_err(|e| format!("cannot back up {}: {e}", path.display()))?,
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) => return Err(format!("cannot back up {}: {e}", path.display())),
         }
     }
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_nanos());
     let mut tmp = path.as_os_str().to_owned();
-    tmp.push(format!(".vexen-tmp-{}", std::process::id()));
+    tmp.push(format!(".vexen-tmp-{}-{nanos}", std::process::id()));
     let tmp = PathBuf::from(tmp);
-    fs::write(&tmp, text).map_err(|e| format!("cannot write {}: {e}", tmp.display()))?;
-    if let Ok(meta) = fs::metadata(path) {
-        let _ = fs::set_permissions(&tmp, meta.permissions());
+    let mut file = create_new(&tmp, mode).map_err(|e| format!("cannot write {}: {e}", tmp.display()))?;
+    let written = file.write_all(text.as_bytes()).and_then(|()| file.sync_all());
+    drop(file);
+    if let Err(e) = written {
+        let _ = fs::remove_file(&tmp);
+        return Err(format!("cannot write {}: {e}", tmp.display()));
+    }
+    // Lost-update guard: someone else saved the config while we were working.
+    let now = match fs::read_to_string(path) {
+        Ok(s) => Some(s),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => None,
+        Err(e) => {
+            let _ = fs::remove_file(&tmp);
+            return Err(format!("cannot re-read {}: {e}", path.display()));
+        }
+    };
+    if now.as_deref() != existing {
+        let _ = fs::remove_file(&tmp);
+        return Err(format!("{} changed while installing; nothing was written, run again", path.display()));
     }
     fs::rename(&tmp, path).map_err(|e| {
         let _ = fs::remove_file(&tmp);

@@ -4,6 +4,13 @@ const SECRET_MARKER: &str = "[REDACTED]";
 
 pub fn contains_secret(text: &str) -> bool {
     let lower = text.to_ascii_lowercase();
+    // Any PEM private-key header, including encrypted PKCS#8 and DSA.
+    if lower
+        .lines()
+        .any(|l| l.contains("-----begin") && l.contains("private key-----"))
+    {
+        return true;
+    }
     if [
         "-----begin private key-----",
         "-----begin rsa private key-----",
@@ -37,7 +44,10 @@ pub fn contains_secret(text: &str) -> bool {
     }
     for line in text.lines() {
         let lower_line = line.to_ascii_lowercase();
-        if has_credential_assignment(&lower_line) || has_sensitive_argv(&lower_line) {
+        if has_credential_assignment(&lower_line)
+            || has_sensitive_argv(&lower_line)
+            || has_auth_header(&lower_line)
+        {
             return true;
         }
     }
@@ -60,8 +70,13 @@ pub fn redact_secrets(text: &str) -> String {
             }
             continue;
         }
-        if has_credential_assignment(&lower) || has_sensitive_argv(&lower) || token_line(&lower) {
+        let keyed = has_credential_assignment(&lower)
+            || has_sensitive_argv(&lower)
+            || has_auth_header(&lower);
+        if keyed {
             out.push(redact_value(line));
+        } else if token_line(&lower) {
+            out.push(redact_tokens(line));
         } else {
             out.push(line.to_owned());
         }
@@ -134,6 +149,28 @@ fn token_line(line: &str) -> bool {
     .any(|prefix| contains_token_prefix(line, prefix))
 }
 
+/// `Authorization: Bearer ...` and `Basic ...` headers.
+fn has_auth_header(line: &str) -> bool {
+    line.contains("authorization")
+        && (line.contains(':') || line.contains('='))
+        && (line.contains("bearer ") || line.contains("basic "))
+}
+
+/// Replace only the token-looking words, so text after a token is kept and a
+/// later `:` or `=` cannot leave the token in place.
+fn redact_tokens(line: &str) -> String {
+    line.split(' ')
+        .map(|word| {
+            if token_line(&word.to_ascii_lowercase()) {
+                SECRET_MARKER
+            } else {
+                word
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 fn redact_value(line: &str) -> String {
     if let Some(i) = line.find(['=', ':']) {
         format!("{}{}", &line[..=i], SECRET_MARKER)
@@ -156,5 +193,26 @@ mod tests {
     fn assignment_detector_does_not_flag_unrelated_words() {
         assert!(!contains_secret("the token bucket is full"));
         assert!(contains_secret("API_KEY=abc"));
+    }
+}
+
+#[cfg(test)]
+mod more_tests {
+    use super::*;
+
+    #[test]
+    fn authorization_headers_and_encrypted_keys_are_detected() {
+        assert!(contains_secret("Authorization: Bearer abc123"));
+        assert!(contains_secret("authorization = basic dXNlcjpwYXNz"));
+        assert!(contains_secret("-----BEGIN ENCRYPTED PRIVATE KEY-----"));
+        assert!(contains_secret("-----BEGIN DSA PRIVATE KEY-----"));
+        assert!(!contains_secret("the authorization flow is documented"));
+    }
+
+    #[test]
+    fn a_token_is_redacted_even_when_a_colon_follows_it() {
+        let out = redact_secrets("ghp_0123456789abcdef0123456789abcdef01234567 see https://example.com");
+        assert!(!out.contains("ghp_0123"), "{out}");
+        assert!(out.contains("see"), "{out}");
     }
 }

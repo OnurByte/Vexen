@@ -298,3 +298,72 @@ fn observe_runs_the_typed_command_and_stores_only_exit_code_and_hash() {
     assert!(json.contains("output_sha256"), "{json}");
     assert!(!json.contains("git version"), "raw output must not be stored: {json}");
 }
+
+#[test]
+fn record_refuses_a_non_utf8_anchor_that_contains_a_secret() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    std::fs::write(root.join("blob.dat"), b"\xffAPI_KEY=abc\n").unwrap();
+    let (ok, _, _) = run(&["record", "--path", "blob.dat", "--summary", "binary-ish file"], &root);
+    assert!(!ok, "a secret in a non-UTF-8 file must not be recorded");
+}
+
+#[test]
+fn record_refuses_an_oversized_anchor_without_reading_it_all() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let f = std::fs::File::create(root.join("big.bin")).unwrap();
+    f.set_len(20 * 1024 * 1024).unwrap();
+    let (ok, _, err) = run(&["record", "--path", "big.bin", "--summary", "too large"], &root);
+    assert!(!ok);
+    assert!(err.contains("too large"), "{err}");
+}
+
+#[test]
+fn import_with_a_dangling_parent_writes_nothing() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let hash = "0".repeat(64);
+    let record = format!(
+        r#"{{"id":"a","parent_id":null,"idempotency_key":"k1","sequence":1,"kind":"attempt","payload":{{"type":"record","data":{{"idempotency_key":"k1","kind":"attempt","summary":"retry loop","anchor_path":"main.rs","anchor_sha256":"{hash}","git_commit":null,"conditions":[]}}}},"previous_hash":"","hash":"x"}}"#
+    );
+    let outcome = r#"{"id":"b","parent_id":"missing","idempotency_key":"outcome:missing:o1","sequence":2,"kind":"outcome","payload":{"type":"outcome","data":{"idempotency_key":"o1","test_id":"t","exit_code":1,"output_sha256":null}},"previous_hash":"x","hash":"y"}"#;
+    let file = root.join("dangling.jsonl");
+    std::fs::write(&file, format!("{{\"vexen_export\":1}}\n{record}\n{outcome}\n")).unwrap();
+    let o = Command::new(env!("CARGO_BIN_EXE_vexen"))
+        .args(["import"])
+        .arg(&file)
+        .arg("--repo")
+        .arg(&root)
+        .output()
+        .unwrap();
+    assert!(!o.status.success());
+    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 0, "nothing may be written");
+}
+
+#[cfg(windows)]
+#[test]
+fn record_refuses_hidden_paths_written_with_backslashes() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    std::fs::create_dir_all(root.join("config")).unwrap();
+    std::fs::write(root.join("config").join(".env"), "A=1\n").unwrap();
+    let (ok, _, _) = run(&["record", "--path", r"config\.env", "--summary", "hidden"], &root);
+    assert!(!ok);
+}
+
+#[test]
+fn item_status_uses_the_same_snake_case_names_as_the_envelope() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "retry loop"], &root);
+    let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    run(&["outcome", &id, "--test-id", "t", "--exit-code", "1"], &root);
+    let (_, check, _) = run(&["check", "--path", "main.rs"], &root);
+    let v: serde_json::Value = serde_json::from_str(&check).unwrap();
+    assert_eq!(v["status"], "observed_failure");
+    assert_eq!(v["items"][0]["status"], "observed_failure", "{v}");
+}

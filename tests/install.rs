@@ -255,3 +255,44 @@ fn opencode_keeps_a_legacy_layout_when_the_file_already_uses_it() {
     assert!(v["mcp"].get("servers").is_none());
     assert_eq!(v["mcp"]["other"]["command"][0], "x");
 }
+
+#[test]
+fn duplicate_json_keys_are_refused_instead_of_silently_dropped() {
+    let (_d, h) = home();
+    let file = h.join(".cursor/mcp.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    let text = r#"{"mcpServers":{"other":{"command":"x"}},"mcpServers":{}}"#;
+    fs::write(&file, text).unwrap();
+    let o = run(&h, "install", &CURSOR, &[]);
+    assert!(!o.status.success());
+    assert!(out(&o).contains("duplicate"), "{}", out(&o));
+    assert_eq!(read(&file), text);
+}
+
+#[test]
+fn an_existing_backup_is_never_overwritten() {
+    let (_d, h) = home();
+    let file = h.join(".cursor/mcp.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    fs::write(&file, r#"{"theme":"dark"}"#).unwrap();
+    let backup = h.join(".cursor/mcp.json.vexen-backup");
+    fs::write(&backup, "older backup").unwrap();
+    assert!(run(&h, "install", &CURSOR, &[]).status.success());
+    assert_eq!(read(&backup), "older backup");
+}
+
+#[cfg(unix)]
+#[test]
+fn a_symlinked_config_is_left_alone_and_its_target_is_not_modified() {
+    let (_d, h) = home();
+    let real = h.join("dotfiles-mcp.json");
+    fs::write(&real, r#"{"mcpServers":{}}"#).unwrap();
+    let dir = h.join(".cursor");
+    fs::create_dir_all(&dir).unwrap();
+    std::os::unix::fs::symlink(&real, dir.join("mcp.json")).unwrap();
+    let o = run(&h, "install", &CURSOR, &[]);
+    assert!(!o.status.success());
+    assert!(out(&o).contains("symbolic link"), "{}", out(&o));
+    assert_eq!(read(&real), r#"{"mcpServers":{}}"#);
+    assert!(fs::symlink_metadata(dir.join("mcp.json")).unwrap().file_type().is_symlink());
+}

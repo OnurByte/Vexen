@@ -1,6 +1,6 @@
 use super::schema::{CheckInput, ExplainInput, OutcomeInput, RecordInput};
 use crate::{
-    analysis::{RepoContext, rank_applicable},
+    analysis::{AdvisoryStatus, RepoContext, rank_applicable},
     privacy::{contains_secret, resolve_repo_path},
     store::{EventId, EventKind, NewEvent, Store, StoreQuery},
 };
@@ -23,6 +23,15 @@ pub enum McpInputError {
     NotFound,
 }
 type Result<T> = std::result::Result<T, McpInputError>;
+
+/// Same snake_case vocabulary as the envelope's `status`.
+fn advisory_status(status: AdvisoryStatus) -> &'static str {
+    match status {
+        AdvisoryStatus::ObservedFailure => "observed_failure",
+        AdvisoryStatus::AcceptedDecision => "accepted_decision",
+        AdvisoryStatus::Conflicted => "conflicted",
+    }
+}
 
 pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
     let root = canonical_root(&input.repo_root)?;
@@ -52,12 +61,12 @@ pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
         })
         .map_err(store_error)?;
     let advisories = rank_applicable(&records, &ctx, 3);
-    let items = advisories.iter().map(|a| serde_json::json!({"id":a.id,"status":format!("{:?}",a.status).to_ascii_lowercase(),"text":a.text})).collect::<Vec<_>>();
+    let items = advisories.iter().map(|a| serde_json::json!({"id":a.id,"status":advisory_status(a.status),"text":a.text})).collect::<Vec<_>>();
     let status = if advisories.is_empty() {
         "no_relevant_evidence"
     } else if advisories
         .iter()
-        .any(|a| format!("{:?}", a.status) != "AcceptedDecision")
+        .any(|a| a.status != AdvisoryStatus::AcceptedDecision)
     {
         "observed_failure"
     } else {
@@ -145,20 +154,30 @@ fn validate_record(root: &Path, event: &NewEvent) -> Result<()> {
     }
     let path = resolve_repo_path(root, Path::new(&event.anchor_path))
         .map_err(|e| McpInputError::Invalid(e.to_string()))?;
-    if event.anchor_path.split('/').any(|p| p.starts_with('.'))
-        || event.anchor_path.to_ascii_lowercase().contains("/secret")
-        || event.anchor_path.to_ascii_lowercase().starts_with("secret")
+    // Treat both separators alike: `config\.env` is as hidden as `config/.env`.
+    let backslash = char::from(92u8);
+    let normalized = event.anchor_path.to_ascii_lowercase().replace(backslash, "/");
+    if normalized.split('/').any(|p| p.starts_with('.'))
+        || normalized.contains("/secret")
+        || normalized.starts_with("secret")
     {
         return Err(McpInputError::Invalid(
             "private or hidden paths cannot be recorded".into(),
         ));
     }
     if path.is_file() {
+        let len = std::fs::metadata(&path)
+            .map_err(|e| McpInputError::Invalid(e.to_string()))?
+            .len();
+        if len > crate::privacy::MAX_ANCHOR_BYTES {
+            return Err(McpInputError::Invalid(format!(
+                "anchor file is too large ({len} bytes; the limit is {})",
+                crate::privacy::MAX_ANCHOR_BYTES
+            )));
+        }
         let bytes = std::fs::read(path).map_err(|e| McpInputError::Invalid(e.to_string()))?;
-        if std::str::from_utf8(&bytes)
-            .ok()
-            .is_some_and(contains_secret)
-        {
+        // Scan lossy text so a stray invalid byte cannot hide a secret.
+        if contains_secret(&String::from_utf8_lossy(&bytes)) {
             return Err(McpInputError::Invalid(
                 "secret-like content cannot be recorded".into(),
             ));
