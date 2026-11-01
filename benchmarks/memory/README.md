@@ -5,14 +5,14 @@ A small paired experiment with a real coding agent. It exists to exercise the wh
 ## Design
 
 - **Agent:** Claude Code (Haiku), same prompt, tools, turn limit and fresh copy of the same repository for every run. Order is shuffled with a fixed seed.
-- **Tasks** (`tasks.py`), tiny Python repositories:
-  - `bom` and `rounding` carry a requirement the visible tests do not show and a hidden test checks (a UTF-8 BOM in input files; half-up rounding). A recorded failed attempt with a failing outcome holds the missing knowledge. These are the *quirk* tasks.
-  - `clamp` is a control: the only note is about another file, so Vexen should abstain and memory should neither help nor hurt.
+- **Tasks** (`tasks.py`, `tasks_extra.py`), tiny Python repositories:
+  - `bom`, `rounding`, `slug`, `dates` and `csvrows` carry a requirement the visible tests do not show and a hidden test checks (a UTF-8 BOM in input files; half-up rounding). A recorded failed attempt with a failing outcome holds the missing knowledge. These are the *quirk* tasks.
+  - `clamp` and `mean` are controls: the only note is about another file, so Vexen should abstain and memory should neither help nor hurt.
 - **Conditions:**
   - `off`: no Vexen.
   - `on`: Vexen configured by `vexen install`, an applicable note, and one sentence asking the agent to call `vexen_check` before editing.
   - `stale` (quirk tasks only): the anchored file is edited after the note was recorded, so Vexen must return no evidence. This is the negative-transfer check: does having Vexen present with nothing to say change the result?
-- **Outcome:** a hidden test passes or fails. Also recorded: agent turns and cost.
+- **Outcome:** a hidden test passes or fails. Also recorded: agent turns and cost, and whether (and with what result) the agent called `vexen_check`.
 - **Statistics:** pass counts with 95% Wilson intervals. With a handful of runs per cell the intervals are wide; read the table as a mechanics check.
 
 ## Run

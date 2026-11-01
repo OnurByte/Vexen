@@ -59,7 +59,7 @@ def add_memory(vexen, task, root, stale):
 def run_agent(claude, task, root, with_vexen):
     prompt = task["prompt"]
     tools = ["Read", "Edit", "Write", "Glob", "Grep", "Bash(py:*)"]
-    cmd = [claude, "-p", "--model", "haiku", "--max-turns", "14", "--output-format", "json",
+    cmd = [claude, "-p", "--model", "haiku", "--max-turns", "14", "--output-format", "stream-json", "--verbose",
            "--permission-mode", "acceptEdits"]
     if with_vexen:
         prompt += (f' This repository uses Vexen memory. Before editing, call the MCP tool vexen_check with repo_root '
@@ -71,15 +71,34 @@ def run_agent(claude, task, root, with_vexen):
     t0 = time.time()
     p = sh(cmd, cwd=root, inp=prompt, check=False)
     wall = time.time() - t0
-    try:
-        j = json.loads(p.stdout)
-    except json.JSONDecodeError:
-        j = {"error": (p.stdout + p.stderr)[:300]}
+    result, check_calls, check_status = {}, 0, None
+    for line in p.stdout.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if ev.get("type") == "result":
+            result = ev
+        message = ev.get("message")
+        for block in (message.get("content") if isinstance(message, dict) else None) or []:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use" and "vexen_check" in str(block.get("name", "")):
+                check_calls += 1
+            if block.get("type") == "tool_result" and "no_relevant_evidence" in json.dumps(block.get("content", "")):
+                check_status = "no_relevant_evidence"
+            elif block.get("type") == "tool_result" and "observed_failure" in json.dumps(block.get("content", "")):
+                check_status = "observed_failure"
     return {
-        "turns": j.get("num_turns"),
-        "cost_usd": j.get("total_cost_usd"),
-        "agent_error": bool(j.get("is_error")) or "error" in j,
+        "turns": result.get("num_turns"),
+        "cost_usd": result.get("total_cost_usd"),
+        "agent_error": bool(result.get("is_error")) or not result,
         "wall_s": round(wall, 1),
+        "vexen_check_calls": check_calls,
+        "vexen_check_status": check_status,
     }
 
 
@@ -106,6 +125,7 @@ def main():
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("--out", required=True)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--only", default="", help="comma-separated task:condition:rep cells to run (re-runs)")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -116,6 +136,9 @@ def main():
             for c in conds:
                 plan.append((name, c, rep))
     random.Random(a.seed).shuffle(plan)
+    if a.only:
+        keep = {tuple(c.split(":")[:2]) + (int(c.split(":")[2]),) for c in a.only.split(",")}
+        plan = [x for x in plan if x in keep]
     rows = []
     with open(out / "results.jsonl", "w", encoding="utf-8") as log:
         for i, (name, cond, rep) in enumerate(plan, 1):
