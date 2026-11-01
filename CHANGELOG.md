@@ -2,7 +2,16 @@
 
 Vexen is in early development. Versions below 1.0 may change behavior between releases.
 
-## Unreleased
+## 0.2.3
+
+Hardening from an independent multi-model review; every finding was verified against the code first.
+
+- Installer: backups are created exclusively and never overwritten; the temp file is created exclusively with the original's permissions; the write is abandoned if the config changed meanwhile; symbolic-link configs and JSON with duplicate keys are refused instead of rewritten.
+- `record`: files over 16 MiB are refused, an invalid byte can no longer hide a secret from the scan, and hidden/secret path checks treat `\` like `/`.
+- Redaction: `Authorization` headers and every PEM private-key header are detected; tokens are redacted even when a colon follows them.
+- `import`: a dangling parent reference is rejected before anything is written.
+- `check` items use snake_case statuses (`observed_failure`, `accepted_decision`, `conflicted`); previously `observedfailure` and `accepteddecision`. This changes the item `status` strings, so clients that matched the old ones must update.
+- Earlier unreleased items: OpenCode 2.x layout, the memory pilot harness and results.
 
 - `benchmarks/memory`: paired memory-on/off pilot harness with a real agent, and its first results (docs/pilot-results.md). Small and toy-sized; no general effect is claimed.
 - Fix: the OpenCode adapter wrote the legacy `mcp.<name>` layout. OpenCode 2.x's own `opencode mcp add` writes `mcp.servers.<name>`, so that is now the default; a file that already uses the legacy layout keeps it. Found by comparing with the client's own writer. A live model call through OpenCode was not possible (no API key for its configured provider), so OpenCode stays `config-tested`.
