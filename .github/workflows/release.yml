@@ -26,13 +26,13 @@ jobs:
     needs: check-version
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Create the release once, before parallel uploads
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
-            || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-                 --title "$GITHUB_REF_NAME" --notes "Early development release. See the README for status."
+          bash scripts/release-notes.sh "$GITHUB_REF_NAME" > release-notes.md
+          gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1             || gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"                  --title "$GITHUB_REF_NAME" --notes-file release-notes.md
 
   build:
     needs: create-release
