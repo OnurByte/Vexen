@@ -6,13 +6,14 @@ pub fn run(
     diff: Option<String>,
     paths: Vec<String>,
     query: Option<String>,
+    conditions: Vec<String>,
 ) -> CliResult {
     let envelope = crate::mcp::check(CheckInput {
         repo_root: path_str(&repo.root()?),
         paths: (!paths.is_empty()).then_some(paths),
         diff_ref: diff,
         query,
-        conditions: None,
+        conditions: (!conditions.is_empty()).then_some(conditions),
     })?;
     println!("{}", serde_json::to_string_pretty(&envelope)?);
     Ok(())
