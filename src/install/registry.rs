@@ -10,7 +10,8 @@ pub enum Scope {
 pub enum Shape {
     /// `{ "<key>": { "vexen": { "command", "args" } } }`
     JsonServers { key: &'static str, typed: bool },
-    /// OpenCode: `{ "mcp": { "vexen": { "type": "local", "command": [..] } } }`
+    /// OpenCode 2.x: `{ "mcp": { "servers": { "vexen": { "type": "local", "command": [..] } } } }`.
+    /// A file that already uses the older `{ "mcp": { "vexen": { .., "enabled": true } } }` keeps it.
     JsonOpenCode,
     /// Codex: `[mcp_servers.vexen]`
     Toml,
@@ -46,7 +47,7 @@ const ALL: &[Adapter] = &[
         project: Some(".mcp.json"),
         global: Some(".claude.json"),
         detect: Some(".claude"),
-        support: "config-tested",
+        support: "client-smoke-tested (Claude Code 2.1.309, Windows, one session)",
     },
     Adapter {
         id: "codex",

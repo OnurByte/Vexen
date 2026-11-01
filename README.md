@@ -72,7 +72,7 @@ vexen install --scope global --dry-run
 vexen install --scope global
 ```
 
-It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. The file formats are covered by tests. Claude Code (2.1.309, Windows) has been checked live: it launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
+It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds. The file formats of the automated clients are covered by tests. Claude Code (2.1.309, Windows) has been checked live: it launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
 
 **Use it from an agent.** `vexen mcp --stdio` serves four MCP tools (`vexen_check`, `vexen_record`, `vexen_outcome`, `vexen_explain`). Point any MCP client at it, for example:
 
