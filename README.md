@@ -18,7 +18,7 @@
   <img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-78a9ff?labelColor=262626" />
 </p>
 
-<p align="center"><a href="https://github.com/OnurByte/Vexen/releases/latest"><strong>Download Vexen →</strong></a><br/><sub><img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="Windows 11" /> Windows &nbsp; <img src="docs/assets/icons/macos.svg" width="24" height="24" alt="macOS" /> macOS &nbsp; <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="Linux" /> Linux</sub></p>
+<p align="center"><a href="#get-started"><strong>Get Vexen →</strong></a></p>
 
 <p align="center"><img src="docs/assets/hero.svg" alt="Vexen, local repository memory for coding agents: labeled flow from your repo to saved evidence to the next session." /></p>
 
@@ -58,25 +58,55 @@ Everything stays on your machine. No cloud, no telemetry, no chat recording. You
 
 ## Get started
 
-Open a terminal in your Git project. Requires [Node.js 18+](https://nodejs.org/) and Git.
+Choose your system. Download the app or use npx with [Node.js 18+](https://nodejs.org/).
 
-**<img src="docs/assets/icons/macos.svg" width="24" height="24" alt="macOS" /> macOS / <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="Linux" /> Linux**
+<table width="100%">
+<tr>
+<td width="33%" align="center" valign="top">
+<img src="docs/assets/icons/windows-11.svg" width="48" height="48" alt="Windows" /><br/>
+<strong>Windows</strong><br/><br/>
+<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-pc-windows-msvc.zip">Download ZIP</a><br/>
+<a href="#windows--powershell">Use npx ↓</a>
+</td>
+<td width="33%" align="center" valign="top">
+<img src="docs/assets/icons/macos.svg" width="48" height="48" alt="macOS" /><br/>
+<strong>macOS</strong><br/><br/>
+<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-apple-darwin.tar.gz">Apple Silicon</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-apple-darwin.tar.gz">Intel</a><br/>
+<a href="#macos">Use npx ↓</a>
+</td>
+<td width="33%" align="center" valign="top">
+<img src="docs/assets/icons/linux.svg" width="48" height="48" alt="Linux" /><br/>
+<strong>Linux</strong><br/><br/>
+<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-unknown-linux-gnu.tar.gz">Download x64</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-unknown-linux-gnu.tar.gz">ARM64</a><br/>
+<a href="#linux">Use npx ↓</a>
+</td>
+</tr>
+</table>
 
-```sh
-npx @onurbyte/vexen init
-npx @onurbyte/vexen install --scope global --npx
-```
+Run the commands for your system inside your Git project:
 
-**<img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="Windows 11" /> Windows · PowerShell**
+### Windows · PowerShell
 
 ```powershell
 npx.cmd @onurbyte/vexen init
 npx.cmd @onurbyte/vexen install --scope global --npx
 ```
 
-Restart your coding agent. [Add the Vexen skill](docs/getting-started.md#3-use-it) so it knows when to save and check lessons.
+### macOS
 
-[Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
+```sh
+npx @onurbyte/vexen init
+npx @onurbyte/vexen install --scope global --npx
+```
+
+### Linux
+
+```sh
+npx @onurbyte/vexen init
+npx @onurbyte/vexen install --scope global --npx
+```
+
+Restart your coding agent. [Add the Vexen skill](docs/getting-started.md#3-use-it) so it knows when to save and check lessons.
 
 <p align="center"><img src="docs/assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
 
