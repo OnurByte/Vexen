@@ -36,6 +36,12 @@ pub fn record(
     let root = repo.root()?;
     // The store checks that the anchor hash matches the file; hash it here so
     // the caller only names the file. Safety checks stay in the shared path.
+    let len = std::fs::metadata(root.join(&path))
+        .map_err(|e| format!("cannot read anchor file `{path}`: {e}"))?
+        .len();
+    if len > crate::privacy::MAX_ANCHOR_BYTES {
+        return Err(format!("anchor file `{path}` is too large ({len} bytes; the limit is {})", crate::privacy::MAX_ANCHOR_BYTES).into());
+    }
     let bytes = std::fs::read(root.join(&path))
         .map_err(|e| format!("cannot read anchor file `{path}`: {e}"))?;
     let file_hash = hex(&Sha256::digest(&bytes));

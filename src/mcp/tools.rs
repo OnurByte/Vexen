@@ -145,20 +145,30 @@ fn validate_record(root: &Path, event: &NewEvent) -> Result<()> {
     }
     let path = resolve_repo_path(root, Path::new(&event.anchor_path))
         .map_err(|e| McpInputError::Invalid(e.to_string()))?;
-    if event.anchor_path.split('/').any(|p| p.starts_with('.'))
-        || event.anchor_path.to_ascii_lowercase().contains("/secret")
-        || event.anchor_path.to_ascii_lowercase().starts_with("secret")
+    // Treat both separators alike: `config\.env` is as hidden as `config/.env`.
+    let backslash = char::from(92u8);
+    let normalized = event.anchor_path.to_ascii_lowercase().replace(backslash, "/");
+    if normalized.split('/').any(|p| p.starts_with('.'))
+        || normalized.contains("/secret")
+        || normalized.starts_with("secret")
     {
         return Err(McpInputError::Invalid(
             "private or hidden paths cannot be recorded".into(),
         ));
     }
     if path.is_file() {
+        let len = std::fs::metadata(&path)
+            .map_err(|e| McpInputError::Invalid(e.to_string()))?
+            .len();
+        if len > crate::privacy::MAX_ANCHOR_BYTES {
+            return Err(McpInputError::Invalid(format!(
+                "anchor file is too large ({len} bytes; the limit is {})",
+                crate::privacy::MAX_ANCHOR_BYTES
+            )));
+        }
         let bytes = std::fs::read(path).map_err(|e| McpInputError::Invalid(e.to_string()))?;
-        if std::str::from_utf8(&bytes)
-            .ok()
-            .is_some_and(contains_secret)
-        {
+        // Scan lossy text so a stray invalid byte cannot hide a secret.
+        if contains_secret(&String::from_utf8_lossy(&bytes)) {
             return Err(McpInputError::Invalid(
                 "secret-like content cannot be recorded".into(),
             ));

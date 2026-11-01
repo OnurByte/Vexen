@@ -5,7 +5,8 @@ use crate::{
 };
 use std::{collections::HashMap, path::Path};
 
-/// Parse and screen the whole file first, then replay; a bad line writes nothing.
+/// Parse and screen the whole file first, then replay. A malformed line,
+/// secret-like text or a dangling parent reference writes nothing.
 pub fn run(repo: &RepoArg, file: &Path) -> CliResult {
     let text = std::fs::read_to_string(file)?;
     let mut lines = text.lines().filter(|l| !l.trim().is_empty());
@@ -25,6 +26,19 @@ pub fn run(repo: &RepoArg, file: &Path) -> CliResult {
             return Err(format!("event {}: secret-like text refused", number + 1).into());
         }
         events.push(event);
+    }
+    let mut seen = std::collections::HashSet::new();
+    for (number, event) in events.iter().enumerate() {
+        match &event.payload {
+            EventPayload::Record(_) => {
+                seen.insert(event.id.clone());
+            }
+            _ => {
+                if !event.parent_id.as_ref().is_some_and(|p| seen.contains(p)) {
+                    return Err(format!("event {}: references a parent absent from the file", number + 1).into());
+                }
+            }
+        }
     }
     let store = Store::open(&repo.root()?)?;
     let mut ids: HashMap<EventId, EventId> = HashMap::new();
