@@ -1,38 +1,62 @@
-# Vexen
+<p align="center">
+  <img src="icon.svg" width="84" height="84" alt="Vexen mark: two cyan and violet strokes meet in a forward-pointing V." />
+</p>
 
-Vexen aims to help coding agents learn from repository history and recorded outcomes. Product development is in progress. **This README documents the Task 1 Git-history research slice and its evaluation harness.** That slice is not the complete memory product and does not provide CLI, MCP, client installation, or agent integrations.
+<h1 align="center">Vexen — give your next coding agent a head start</h1>
 
-## Current findings
+<p align="center">Local, evidence-based memory for coding agents working in the same repository.</p>
 
-The Task 1 evaluation covered ten frozen public repositories. Thresholded co-change had lower Hit@3 than plain historical co-change counts on all ten. It therefore remains research-only; this code does not ship default change-impact hints. The evaluation is a file-retrieval proxy and does not show that memory improves coding-agent task success.
+<p align="center"><img src="docs/assets/hero.svg" alt="A repository sends a small, cited memory forward to the next coding session. The memory is local, and the agent remains in control." /></p>
 
-See [the benchmark report](docs/benchmarks.md) for per-repository and aggregate results, method, limitations and reproduction details. Frozen repository sources and Git HEADs are in [evaluation-inputs.json](docs/evaluation-inputs.json).
+Vexen is being built to help a coding agent carry useful repository context into the next session. It focuses on two things: what a past attempt actually showed, and where the supporting evidence came from. It is designed to work locally across coding-agent harnesses.
 
-## Try the research slice
+## What exists today
+
+This is an early development project, not a ready-to-install tool. The current repository contains a Rust Git-history research library and evaluation harness. It does **not** yet include a usable Vexen command, MCP server, client installer, or working cross-session memory workflow.
+
+The first change-impact experiment did not beat plain historical co-change counts on any of ten evaluated repositories. Change-impact suggestions therefore remain research-only. The results are a file-retrieval proxy, not evidence that Vexen improves coding-agent task success. See the [evaluation and its limitations](docs/benchmarks.md).
+
+## The idea
+
+<p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: a coding agent records a failed approach with its test outcome; Vexen keeps a local evidence note; a later session receives a short reminder with its source and applicability. If the evidence does not fit, Vexen can return nothing." /></p>
+
+A useful reminder should say what happened, point to its source, and make clear when it may no longer apply. A test result is evidence about one code state; it is not a guarantee. Vexen should be able to say “no relevant evidence.”
+
+## See the shape of a reminder
+
+<p align="center"><img src="docs/assets/example.svg" alt="Illustrative, not measured: a sample reminder says a retry change once duplicated a charge, cites a hypothetical test and commit, and warns that the evidence may be stale." /></p>
+
+The example is fictional and illustrates the planned format. It is not a result from a Vexen run.
+
+## Explore the research slice
+
+Requires Rust 2024 and Git. Run the available tests:
 
 ```sh
 cargo test --all-targets
 ```
 
-Analyze one locally available bare repository and emit machine-readable metrics:
+Run the co-change benchmark against a **local** Git repository:
 
 ```sh
 cargo bench --bench cochange -- /path/to/repository.git 0.8 --per-query /tmp/queries.jsonl
 ```
 
-Reproduce the frozen ten-repository evaluation using local bare repositories named after the inputs (for example `bat.git`, `fd.git`, `ripgrep.git`):
+The benchmark reads local history; the frozen-corpus runner also requires repositories already downloaded. See [reproduction details](docs/benchmarks.md).
+
+## Installation status
+
+There is no installable Vexen binary yet. After the CLI is implemented and the repository is published at the intended address, the planned source install is:
 
 ```sh
-bash benchmarks/cochange/run-corpus.sh /path/to/evaluation /tmp/vexen-results
+cargo install --git https://github.com/OnurByte/Vexen --locked
 ```
 
-The corpus runner checks each expected Git HEAD and does not download repositories. The standalone benchmark accepts any local Git repository. When invoked without a repository, it reports that no benchmark ran and exits successfully so standard Cargo all-target checks work.
+This command is a plan, not a working installation today. No crates.io package or release binary is claimed.
 
-## Privacy and compatibility
+## Privacy and scope
 
-The library reads local Git history through the Git executable. It does not collect prompts, transcripts, command output, telemetry or API credentials. The corpus script operates on repositories already present on disk; it does not download them. Git's own repository configuration remains in effect.
-
-This research slice requires Rust 2024 edition and a local Git executable. No coding-agent harness or operating-system compatibility claim is made because the CLI, MCP and installer layers are not implemented here.
+The research slice reads local Git history. It does not collect prompts, transcripts, command output, telemetry, or API credentials. Planned Vexen memory is local-first; its storage and security behavior still need implementation and validation. Vexen is not an agent, permission gate, or guarantee against regressions.
 
 ## License
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 258" role="img" aria-labelledby="title desc">
+<title id="title">Evidence becomes a useful reminder</title><desc id="desc">First, an agent records a failed approach and test outcome. Next, Vexen keeps a local evidence note. Later, a relevant short reminder points to the source; otherwise it stays quiet.</desc>
+<rect width="1000" height="258" rx="24" fill="#161616"/>
+<path d="M286 125h125m-12-11 12 11-12 11M618 125h125m-12-11 12 11-12 11" fill="none" stroke="#5b5b5b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<g><rect x="30" y="35" width="256" height="188" rx="18" fill="#262626" stroke="#414141"/><circle cx="63" cy="73" r="16" fill="#3ddbd9" opacity=".2"/><path d="M63 64v11m0 8v1" stroke="#3ddbd9" stroke-width="4" stroke-linecap="round"/><path d="M98 70h139M60 123h166m-166 23h130m-130 24h85" stroke="#f2f4f8" stroke-width="7" stroke-linecap="round" opacity=".25"/></g>
+<g><rect x="372" y="35" width="256" height="188" rx="18" fill="#262626" stroke="#5b4d70"/><path d="m405 76 18-18 18 18-18 18z" fill="#be95ff" opacity=".9"/><path d="M462 70h129M405 125h187m-187 23h152m-152 24h104" stroke="#f2f4f8" stroke-width="7" stroke-linecap="round" opacity=".25"/><circle cx="589" cy="178" r="6" fill="#3ddbd9"/></g>
+<g><rect x="714" y="35" width="256" height="188" rx="18" fill="#262626" stroke="#414141"/><path d="m755 83 14 13 28-33" fill="none" stroke="#3ddbd9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M817 70h111M755 125h175m-175 23h145" stroke="#f2f4f8" stroke-width="7" stroke-linecap="round" opacity=".25"/><rect x="755" y="174" width="101" height="15" rx="7.5" fill="#be95ff" opacity=".42"/></g>
+</svg>

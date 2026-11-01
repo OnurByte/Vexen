@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 260" role="img" aria-labelledby="title desc">
+<title id="title">Illustrative evidence reminder</title><desc id="desc">Fictional example card about a retry change that once caused duplicate charging, with a hypothetical test and commit citation. A notice says the evidence may be stale.</desc>
+<rect width="1000" height="260" rx="24" fill="#161616"/><rect x="26" y="24" width="948" height="212" rx="18" fill="#262626" stroke="#414141"/>
+<rect x="52" y="50" width="11" height="11" rx="5" fill="#be95ff"/><path d="M81 55h159" stroke="#f2f4f8" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+<path d="M54 93h538M54 113h444" stroke="#f2f4f8" stroke-width="8" stroke-linecap="round" opacity=".83"/>
+<rect x="54" y="143" width="313" height="34" rx="8" fill="#161616"/><path d="M70 160h84m17 0h57m17 0h101" stroke="#3ddbd9" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+<rect x="389" y="143" width="168" height="34" rx="17" fill="#3ddbd9" opacity=".13"/><circle cx="407" cy="160" r="5" fill="#3ddbd9"/><path d="M421 160h119" stroke="#3ddbd9" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+<rect x="54" y="195" width="892" height="24" rx="7" fill="#be95ff" opacity=".12"/><circle cx="70" cy="207" r="4" fill="#be95ff"/><path d="M84 207h481" stroke="#be95ff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+</svg>

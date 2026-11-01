@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" role="img" aria-labelledby="title desc">
+<title id="title">A head start for the next coding session</title><desc id="desc">A local repository's evidence moves through a compact memory note to a later coding session.</desc>
+<defs><linearGradient id="glow" x1="0" x2="1"><stop stop-color="#3ddbd9"/><stop offset="1" stop-color="#be95ff"/></linearGradient><filter id="blur"><feGaussianBlur stdDeviation="30"/></filter></defs>
+<rect width="1200" height="430" rx="28" fill="#161616"/>
+<circle cx="870" cy="150" r="112" fill="#be95ff" opacity=".11" filter="url(#blur)"/>
+<circle cx="345" cy="292" r="112" fill="#3ddbd9" opacity=".10" filter="url(#blur)"/>
+<path d="M244 213H923" stroke="#414141" stroke-width="2" stroke-dasharray="5 12"/>
+<path d="M257 213H909" stroke="url(#glow)" stroke-width="3" opacity=".76"/>
+<path d="m892 201 17 12-17 12" fill="none" stroke="#be95ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- repository -->
+<rect x="72" y="110" width="225" height="206" rx="20" fill="#262626" stroke="#414141"/>
+<path d="M72 151h225" stroke="#414141"/><circle cx="96" cy="131" r="4" fill="#3ddbd9"/><circle cx="111" cy="131" r="4" fill="#be95ff"/>
+<path d="M115 195v74m0-60h44m-44 27h73m-73 27h55" stroke="#f2f4f8" stroke-width="8" stroke-linecap="round" opacity=".78"/>
+<circle cx="115" cy="188" r="10" fill="#3ddbd9"/><circle cx="159" cy="209" r="8" fill="#be95ff"/><circle cx="188" cy="236" r="8" fill="#3ddbd9"/>
+<!-- evidence memory card -->
+<rect x="475" y="87" width="268" height="250" rx="22" fill="#262626" stroke="#5b4d70" stroke-width="2"/>
+<path d="M510 139h86" stroke="#be95ff" stroke-width="6" stroke-linecap="round"/>
+<path d="M510 177h195M510 198h156M510 246h189" stroke="#f2f4f8" stroke-width="8" stroke-linecap="round" opacity=".22"/>
+<rect x="510" y="276" width="95" height="24" rx="12" fill="#3ddbd9" opacity=".18"/><circle cx="526" cy="288" r="5" fill="#3ddbd9"/><path d="M541 288h49" stroke="#3ddbd9" stroke-width="4" stroke-linecap="round"/>
+<!-- next session -->
+<rect x="904" y="110" width="225" height="206" rx="20" fill="#262626" stroke="#414141"/>
+<path d="M941 166h149M941 188h111" stroke="#f2f4f8" stroke-width="8" stroke-linecap="round" opacity=".26"/>
+<path d="m952 235 22 21 46-48" fill="none" stroke="#3ddbd9" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1052" cy="254" r="22" fill="#be95ff" opacity=".2"/><path d="M1042 254h20m-10-10v20" stroke="#be95ff" stroke-width="4" stroke-linecap="round"/>
+<path d="M361 98h52m-52 0 15-15m-15 15 15 15" stroke="#3ddbd9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M800 334h39m-39 0 12-12m-12 12 12 12" stroke="#be95ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="341" y="76" width="92" height="30" rx="15" fill="#262626"/><circle cx="358" cy="91" r="4" fill="#3ddbd9"/><path d="M371 91h43" stroke="#f2f4f8" stroke-width="3" opacity=".55" stroke-linecap="round"/>
+<rect x="782" y="319" width="78" height="30" rx="15" fill="#262626"/><circle cx="799" cy="334" r="4" fill="#be95ff"/><path d="M812 334h32" stroke="#f2f4f8" stroke-width="3" opacity=".55" stroke-linecap="round"/>
+</svg>
