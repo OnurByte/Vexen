@@ -1,0 +1,134 @@
+{
+  "palette": {
+    "canvas": "#161616",
+    "icon": "#78a9ff"
+  },
+  "icons": [
+    {
+      "id": "claude",
+      "label": "Claude Code",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/claude.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/codex.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "cursor",
+      "label": "Cursor",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/cursor.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini CLI",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/gemini.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "vscode",
+      "label": "VS Code",
+      "source": "Simple Icons 11.15.0 / visualstudiocode",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "opencode",
+      "label": "OpenCode",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/opencode.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "windsurf",
+      "label": "Windsurf",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/windsurf.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "kiro",
+      "label": "Kiro",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/kiro.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "github-copilot",
+      "label": "GitHub Copilot",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/githubcopilot.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "cline",
+      "label": "Cline",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/cline.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "zed",
+      "label": "Zed",
+      "source": "Simple Icons / zedindustries",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "hermes",
+      "label": "Hermes",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/hermesagent.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "qwen",
+      "label": "Qwen Code",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/qwen.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "continue",
+      "label": "Continue",
+      "source": "continuedev/continue: extensions/intellij/src/main/resources/icons/continue.svg",
+      "license": "Apache-2.0"
+    },
+    {
+      "id": "goose",
+      "label": "Goose",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/goose.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "kilo",
+      "label": "Kilo",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/kilocode.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "vibe",
+      "label": "Mistral Vibe",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/mistral.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "openhands",
+      "label": "OpenHands",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/openhands.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "macos",
+      "label": "macOS",
+      "source": "@lobehub/icons-static-svg@1.101.0/icons/apple.svg",
+      "license": "MIT"
+    },
+    {
+      "id": "linux",
+      "label": "Linux",
+      "source": "Simple Icons / linux",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "windows-11",
+      "label": "Windows 11",
+      "source": "Original four-pane geometric Windows 11 mark rendering",
+      "license": "GPL-3.0-or-later"
+    }
+  ]
+}

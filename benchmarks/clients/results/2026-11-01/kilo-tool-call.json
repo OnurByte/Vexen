@@ -1,0 +1,39 @@
+{
+  "type": "tool_use",
+  "timestamp": 1793557716143,
+  "sessionID": "ses_e67a13b33ffe2GaXK82GPJwP7k",
+  "part": {
+    "id": "prt_1985edc7c001PtwnmuI4sCF06w",
+    "sessionID": "ses_e67a13b33ffe2GaXK82GPJwP7k",
+    "messageID": "msg_1985edb740016VMk4jUodENLub",
+    "type": "tool",
+    "callID": "smoke-call",
+    "tool": "vexen_vexen_check",
+    "state": {
+      "status": "completed",
+      "input": {
+        "repo_root": "/tmp/vexen-client-smoke-20261101/repo",
+        "paths": [
+          "sample.py"
+        ]
+      },
+      "output": "{\"schema_version\":1,\"repo_id\":\"67727de929c9bde07220719291323a245dd9c20b1e801d8d9763c8ef6da7c112\",\"status\":\"accepted_decision\",\"items\":[{\"id\":\"bce0d02ccd3de93f9f7cfc5181822d0819e2d825e997707776cf5645414a47c6\",\"status\":\"accepted_decision\"}]}",
+      "title": "",
+      "metadata": {
+        "truncated": false,
+        "approval": {
+          "source": "global",
+          "rule": {
+            "permission": "vexen_*",
+            "pattern": "*",
+            "action": "allow"
+          }
+        }
+      },
+      "time": {
+        "start": 1793557716098,
+        "end": 1793557716136
+      }
+    }
+  }
+}

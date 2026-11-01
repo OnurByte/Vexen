@@ -1,0 +1,4 @@
+{
+  "error": "Error: command 'workbench.mcp.startServer' not found",
+  "stack": "Error: command 'workbench.mcp.startServer' not found\n    at rSe._tryExecuteCommand (vscode-file://vscode-app/tmp/vexen-client-smoke-20261101/apps/windsurf/resources/app/out/vs/workbench/workbench.desktop.main.js:2114:7335)\n    at rSe.executeCommand (vscode-file://vscode-app/tmp/vexen-client-smoke-20261101/apps/windsurf/resources/app/out/vs/workbench/workbench.desktop.main.js:2114:7235)"
+}

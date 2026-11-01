@@ -1,0 +1,4 @@
+{
+  "error": "Error: command 'workbench.mcp.startServer' not found",
+  "stack": "Error: command 'workbench.mcp.startServer' not found\n    at tdt._tryExecuteCommand (vscode-file://vscode-app/opt/Kiro/resources/app/out/vs/workbench/workbench.desktop.main.js:2054:4832)\n    at tdt.executeCommand (vscode-file://vscode-app/opt/Kiro/resources/app/out/vs/workbench/workbench.desktop.main.js:2054:4732)"
+}

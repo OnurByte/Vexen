@@ -24,3 +24,11 @@ Evaluation ruling: thresholded co-change Hit@3 was below plain historical co-cha
 
 Ruling: User explicitly directed continuing to finish after the failed gate. Keep historical cochange out of default advice; continue memory/MCP/CLI/installer scope. Do not claim predictive superiority, stable live compatibility, or agent outcome uplift. Cost if wrong: memory-first positioning may require revision, but no unvalidated default hints are exposed.
 Task 1: fix round 1/5 all five findings addressed, commits d3fd909..53f7b5a; corpus completed all10, no Hit@3 superiority to plain counts.
+
+## 2026-11-01 — additional client runtime checks
+
+Vexen 0.2.5 completed a real `vexen_check` call in 13 previously untested clients on Linux: GitHub Copilot CLI, Gemini CLI, Qwen Code, Continue CLI, Goose, Hermes, VS Code, Cline CLI, fast-agent, Crush, Kilo CLI, Mistral Vibe and OpenHands CLI. The earlier Claude Code/Codex/OpenCode checks are not counted again. One run used a real model, eleven used a deterministic local model endpoint, and one used VS Code's native extension test host. The actual clients and actual Vexen process performed the MCP operations.
+
+Four-tool discovery also succeeded in Cursor, Kiro, Zed and the Cline editor extension, without a verified tool invocation in those surfaces. Windsurf's bundled Devin print flow remained login-blocked. These partial checks are excluded from the thirteen. See `docs/client-smoke-tests.md`, raw fixture evidence in `benchmarks/clients/results/2026-11-01/`, and `python benchmarks/clients/verify_results.py` for the evidence audit.
+
+This advances experimental runtime compatibility, not the full stable-installer gate: broad OS/client coverage, the planned adapter matrix, and paired evaluation on real repositories remain open.

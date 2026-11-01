@@ -42,3 +42,9 @@ Use [Geist](https://vercel.com/font) for headings and body text, and Geist Mono 
 - “This is a planned install command; the CLI is not available yet.”
 
 Not: “Vexen knows what your agent needs,” “Never repeat a mistake,” or “Works with every coding agent.”
+
+## Platform and client icons
+
+README platform and client marks live in `docs/assets/icons/`; the agent panel is `docs/assets/clients.svg`. The original mark geometry is retained in a single Vexen blue (`#78a9ff`) on rounded near-black tiles (`#161616`). The panel uses charcoal cards (`#262626`), near-white labels (`#f2f4f8`) and light-blue supporting text (`#a6c8ff`). Labels are outlined from the bundled Geist fonts, matching the existing illustrations.
+
+Third-party source and license information is recorded in `docs/assets/icons/sources.json`, with license notices in `docs/assets/icons/licenses/`. Lobe Icons 1.101.0 marks are MIT-licensed; the Linux, VS Code and Zed marks come from Simple Icons (CC0); the Continue mark comes from its Apache-2.0 repository. Windows 11 uses a four-pane geometric rendering. Product marks remain the property of their respective owners and identify compatibility surfaces, not endorsement. The panel links to setup and test details because support levels differ between clients.

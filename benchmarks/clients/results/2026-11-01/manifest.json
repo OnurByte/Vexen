@@ -1,0 +1,120 @@
+{
+  "date": "2026-11-01",
+  "timezone": "Europe/Istanbul",
+  "platform": "Linux x86_64",
+  "vexen_version": "0.2.5",
+  "git_commit": "73ecad5d3f79824e37117a6c53baba650598b0a3",
+  "binary_sha256": "56af74df24601bcf4b98d3fce6ee4395459650261f87d0addc55fe91ca207b54",
+  "fixture_root": "/tmp/vexen-client-smoke-20261101/repo",
+  "repo_id": "67727de929c9bde07220719291323a245dd9c20b1e801d8d9763c8ef6da7c112",
+  "record_id": "bce0d02ccd3de93f9f7cfc5181822d0819e2d825e997707776cf5645414a47c6",
+  "expected_status": "accepted_decision",
+  "expected_note": "SMOKE-20261101: empty input must return zero; a previous implementation returned None.",
+  "clients": [
+    {
+      "id": "copilot",
+      "version": "1.0.105",
+      "driver": "real-model",
+      "evidence": "copilot-call.log"
+    },
+    {
+      "id": "gemini",
+      "version": "0.66.0",
+      "driver": "deterministic-local-model",
+      "evidence": "gemini-wire.jsonl"
+    },
+    {
+      "id": "qwen",
+      "version": "0.26.5",
+      "driver": "deterministic-local-model",
+      "evidence": "qwen-wire.jsonl"
+    },
+    {
+      "id": "continue",
+      "version": "1.5.47",
+      "driver": "deterministic-local-model",
+      "evidence": "continue-wire.jsonl"
+    },
+    {
+      "id": "goose",
+      "version": "1.57.0",
+      "driver": "deterministic-local-model",
+      "evidence": "goose-wire.jsonl"
+    },
+    {
+      "id": "hermes",
+      "version": "0.22.5",
+      "driver": "deterministic-local-model",
+      "evidence": "hermes-wire.jsonl"
+    },
+    {
+      "id": "vscode",
+      "version": "1.144.0",
+      "driver": "vscode-extension-test-host",
+      "evidence": "vscode-wire.jsonl"
+    },
+    {
+      "id": "cline-cli",
+      "version": "3.0.74",
+      "driver": "deterministic-local-model",
+      "evidence": "cline-cli-wire.jsonl"
+    },
+    {
+      "id": "fast-agent",
+      "version": "0.10.49",
+      "driver": "deterministic-local-model",
+      "evidence": "fast-agent-wire.jsonl"
+    },
+    {
+      "id": "crush",
+      "version": "0.99.0",
+      "driver": "deterministic-local-model",
+      "evidence": "crush-wire.jsonl"
+    },
+    {
+      "id": "kilo",
+      "version": "7.8.18",
+      "driver": "deterministic-local-model",
+      "evidence": "kilo-tool-call.json"
+    },
+    {
+      "id": "vibe",
+      "version": "3.0.4",
+      "driver": "deterministic-local-model",
+      "evidence": "vibe-wire.jsonl"
+    },
+    {
+      "id": "openhands",
+      "version": "1.16.0 (SDK 1.21.0)",
+      "driver": "deterministic-local-model",
+      "evidence": "openhands-wire.jsonl"
+    }
+  ],
+  "additional_checks": [
+    {
+      "id": "cursor",
+      "result": "discovery-only",
+      "evidence": "cursor-wire.jsonl"
+    },
+    {
+      "id": "kiro",
+      "result": "discovery-only",
+      "evidence": "kiro-wire.jsonl"
+    },
+    {
+      "id": "zed",
+      "result": "discovery-only",
+      "evidence": "zed-wire.jsonl"
+    },
+    {
+      "id": "cline",
+      "result": "discovery-only",
+      "evidence": "cline-wire.jsonl"
+    },
+    {
+      "id": "windsurf",
+      "result": "not-verified-login-required",
+      "evidence": "windsurf-live-test.log"
+    }
+  ]
+}

@@ -7,7 +7,7 @@
 
 <h1 align="center">Vexen</h1>
 
-<p align="center"><strong>Give your next coding agent a head start.</strong><br/>Coding agents forget what failed. Vexen keeps a local, source-linked record of it in your repository, and says nothing when it no longer applies.</p>
+<p align="center"><strong>Your agent forgets. Your project shouldn’t.</strong><br/>Keep the lessons from one coding session. Give the next one a head start.</p>
 
 <p align="center">
   <img alt="Status: early development" src="https://img.shields.io/badge/status-early%20development-78a9ff?labelColor=262626" />
@@ -18,131 +18,80 @@
   <img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-78a9ff?labelColor=262626" />
 </p>
 
+<p align="center"><a href="https://github.com/OnurByte/Vexen/releases/latest"><strong>Download Vexen →</strong></a><br/><sub><img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="Windows 11" /> Windows &nbsp; <img src="docs/assets/icons/macos.svg" width="24" height="24" alt="macOS" /> macOS &nbsp; <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="Linux" /> Linux</sub></p>
+
 <p align="center"><img src="docs/assets/hero.svg" alt="Vexen, local repository memory for coding agents: labeled flow from your repo to saved evidence to the next session." /></p>
 
-Coding agents are fast, but every session starts cold. Vexen keeps a small, local record of what past attempts in your repository actually showed, with the source for each, so the next agent can check it before repeating a dead end.
+Vexen gives your AI coding agents a shared, local memory of what you’ve tried, what failed, and why. Save a lesson once. Let your next agent check it before starting over.
 
-> **Early development.** The pieces below are real and tested, but Vexen is not a finished product yet. [Where it stands](#where-vexen-stands) lists what works today and what does not.
+**Free. Open source. No account required.**
 
-```sh
-npx @onurbyte/vexen init     # run inside any Git repository; needs Node 18+, no Rust
-```
+[Get started](#get-started) · [Supported agents](#works-with-your-coding-setup) · [Docs](#learn-more)
 
-[More ways to install](#get-started) (prebuilt binary, `cargo`), and how to [connect your agents](#2-connect-your-agents).
-
-## The problem
+## Stop starting from scratch
 
 <p align="center"><img src="docs/assets/problem.svg" alt="Illustrative and fictional: in session one an agent retries a charge after a timeout and a test fails with a double charge. A week later a new agent tries the same thing, because it has no memory of the first failure." /></p>
 
-Your history shows what shipped. It rarely shows what was tried and abandoned, or why. Generic "memory" can make it worse by surfacing stale or unrelated advice. Vexen is built around the opposite rule: say something only when the evidence still fits.
+A new chat shouldn’t mean losing everything you learned in the last one. Keep failed attempts and important decisions with your project, ready for the next session.
 
-## How it works
+## Save the lesson. Keep the proof.
 
 <p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: record what failed, keep the proof, and recall it only when it fits current code. Vexen can stay quiet when evidence does not apply." /></p>
 
-1. **Record what failed.** An agent saves the attempt and its result through the MCP server.
-2. **Keep the proof.** The note stays tied to a file, a commit and the test that showed it.
-3. **Recall it only when it fits.** Before an edit, Vexen checks whether the evidence still applies to the current code. If not, it says there is no relevant evidence.
-
-### What a reminder looks like
+Your agent records an attempt and its result. Vexen keeps the source and checks whether it still fits your code before bringing it back.
 
 <p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
 
-This example is fictional and shows the planned format. On a fresh repository the real answer is "no relevant evidence" (see the terminal output below).
+*Illustrative example. When nothing applies, Vexen stays quiet.*
 
-## Built to stay out of your way
+## Your project. Your memory.
 
 <p align="center"><img src="docs/assets/principles.svg" alt="Four design principles: local first with no account, cloud or telemetry; every reminder cites its source; no relevant evidence is a valid answer; one small Rust and SQLite binary with nothing running in the background." /></p>
 
-A test result is evidence about one code state, not a guarantee. Vexen reports what happened and where it came from, and leaves the decision to you and your agent. It does not block edits, gate approvals, or record your chat transcripts.
+Everything stays on your machine. No cloud, no telemetry, no chat recording. You and your agent stay in control.
+
+## Works with your coding setup
+
+<p align="center"><img src="docs/assets/clients.svg" alt="Agent and IDE icons in Vexen blue: Claude Code, Codex, Cursor, Gemini CLI, VS Code, OpenCode, Windsurf, Kiro, GitHub Copilot, Cline, Zed, Hermes, Qwen Code, Continue, Goose, Kilo, Mistral Vibe and OpenHands. Setup and test coverage vary by client." /></p>
+
+[Find your agent’s setup →](docs/getting-started.md#2-connect-your-agents) · [Compatibility & test results](docs/client-smoke-tests.md)
 
 ## Get started
 
-### 1. Run it (pick one)
+Open a terminal in your Git project. Requires [Node.js 18+](https://nodejs.org/) and Git.
 
-**With `npx`: no install, no Rust** (needs Node 18 or newer). The first run downloads the checksummed binary for your platform, verifies it and caches it; after that it starts instantly.
+**<img src="docs/assets/icons/macos.svg" width="24" height="24" alt="macOS" /> macOS / <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="Linux" /> Linux**
 
 ```sh
-cd my-repo
 npx @onurbyte/vexen init
-npx @onurbyte/vexen doctor
-npx @onurbyte/vexen check --diff HEAD
-```
-
-**Prebuilt binary:** download the archive for Windows, Linux (x64, arm64) or macOS (x64, arm64) from the [Releases page](https://github.com/OnurByte/Vexen/releases) (each has a SHA-256 file) and put `vexen` on your `PATH`.
-
-**From source** (Rust 2024 and Git):
-
-```sh
-cargo install --git https://github.com/OnurByte/Vexen --locked
-```
-
-The rest of this page writes `vexen`; with `npx`, read it as `npx @onurbyte/vexen`.
-
-<p align="center"><img src="docs/assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
-
-On a fresh repository the honest answer is "no relevant evidence", and that is what you see.
-
-### 2. Connect your agents
-
-`vexen install` adds the MCP entry to the config files of the agents it finds (Claude Code, Codex CLI, Cursor, Gemini CLI, Windsurf, Kiro, VS Code, OpenCode). Preview first, then apply; `vexen uninstall` removes only what it added.
-
-```sh
-# with the binary on your PATH
-vexen install --scope global --dry-run
-vexen install --scope global
-
-# with npx only: the config makes your agents start Vexen through npx
 npx @onurbyte/vexen install --scope global --npx
 ```
 
-It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments or a symbolic link. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds.
+**<img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="Windows 11" /> Windows · PowerShell**
 
-The file formats of the automated clients are covered by tests. Claude Code (2.1.309), OpenCode (2.2.5) and Codex CLI (0.166.0) have each been checked live once, on Windows: a real model called `vexen_check` through the server entry and got a recorded failure back. For Claude Code and OpenCode the entry came from the file `vexen install` wrote (for Claude Code also the `--npx` form); for Codex the same `mcp_servers.vexen` keys were passed with `-c`. The other clients are config-tested only.
-
-### 3. Use it
-
-**From an agent over MCP.** `vexen mcp --stdio` serves four tools: `vexen_check` reads past evidence for a file, `vexen_record` saves a failed attempt or a decision, `vexen_outcome` attaches a test result, and `vexen_explain` shows where a note came from. To wire a client by hand:
-
-```json
-{ "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }
+```powershell
+npx.cmd @onurbyte/vexen init
+npx.cmd @onurbyte/vexen install --scope global --npx
 ```
 
-(or `{ "command": "vexen", "args": ["mcp", "--stdio"] }` with the binary on your `PATH`; on Windows start `npx` through `cmd /c`). Agents pass the repository root explicitly on every call, so one server never leaks memory between projects. Your data lives in `.vexen/` inside the repository, and the database files are ignored by Git. `vexen export` and `vexen import` move it as versioned JSONL.
+Restart your coding agent. [Add the Vexen skill](docs/getting-started.md#3-use-it) so it knows when to save and check lessons.
 
-**As an agent skill.** [`skills/vexen/SKILL.md`](skills/vexen/SKILL.md) teaches an agent when to run `vexen check` before an edit and `vexen record` after a failed attempt. It follows the Agent Skills format, so any compatible agent can install it from this repository (the skill does not install Vexen itself):
+[Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
 
-```sh
-npx skills add OnurByte/Vexen
-```
+<p align="center"><img src="docs/assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
 
-**Without MCP.** Agents (or you) save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`. To run the test and attach it in one step, use `vexen observe <id> --test-id <test> -- <command>`; `<id>` is the id `vexen record` printed, and only the exit code and an output hash are stored.
+A new project starts with an empty memory. It grows as you and your agent record what you learn.
 
-## Where Vexen stands
+[Setup help →](docs/getting-started.md)
+
+## Built, tested, still growing
 
 <p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, installer for eight agents, test-result capture, npx launcher on npm, Git-history analysis for research. Next: live smoke tests with more clients, signed release binaries, Windows and macOS test fixtures. Later: paired agent evaluation, published negative results." /></p>
 
-We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
+An early release with real tool calls verified in 13 additional clients. [See the results and test limits →](docs/client-smoke-tests.md)
 
-Only Claude Code, OpenCode and Codex CLI have been smoke-tested live, once each, on Windows. A paired pilot (100 real agent runs on toy tasks, two rounds) is written up in [docs/pilot-results.md](docs/pilot-results.md): with an applicable note the agent passed 11 of 20 tasks that hide a requirement, against 2 of 20 without memory and 0 of 20 when the note was stale; Vexen with nothing to say did no harm on the controls. The tasks are toy-sized and written by us, so no effect in real repositories is claimed.
+## Learn more
 
-## Privacy
+[Privacy](docs/security.md) · [Agent compatibility](docs/client-smoke-tests.md) · [Evaluation results](docs/pilot-results.md) · [Roadmap](docs/specification.md)
 
-Details are in [docs/security.md](docs/security.md); formats and the MCP tools are in [docs/formats.md](docs/formats.md) and [docs/protocol.md](docs/protocol.md).
-
-Vexen reads local Git history and stores what you or your agent record. By design it makes no network calls, has no telemetry, and does not capture prompts, transcripts, command output or credentials. Secret-like text is refused at record time. Imported text is treated as data, never as instructions.
-
-## Build and contribute
-
-```sh
-cargo test                                  # unit and integration tests
-cargo bench --bench cochange -- /path/to/repo.git 0.8 --per-query out.jsonl
-```
-
-The benchmark reads a **local** repository; reproduction details are in [docs/benchmarks.md](docs/benchmarks.md). The plan and task list live in [docs/specification.md](docs/specification.md), progress in [docs/progress.md](docs/progress.md), and the look and voice in [brand.md](brand.md).
-
-Two fixtures need file names some systems refuse (control characters on Windows, non-UTF-8 bytes on macOS); CI skips them there.
-
-## License
-
-GPL-3.0-or-later. See [LICENSE](LICENSE). Vexen is independent and is not endorsed by Vercel; the [Geist](https://github.com/vercel/geist-font) fonts in diagrams are under the SIL Open Font License.
+GPL-3.0-or-later · [License](LICENSE). Independent; not affiliated with Vercel. [Geist fonts](https://github.com/vercel/geist-font) are used under the SIL Open Font License.

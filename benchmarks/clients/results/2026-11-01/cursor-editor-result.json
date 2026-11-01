@@ -1,0 +1,4 @@
+{
+  "error": "Error: command 'workbench.mcp.startServer' not found",
+  "stack": "Error: command 'workbench.mcp.startServer' not found\n    at PIa._tryExecuteCommand (vscode-file://vscode-app/tmp/vexen-client-smoke-20261101/apps/cursor-cli/squashfs-root/usr/share/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:18881:6715)\n    at PIa.executeCommandImpl (vscode-file://vscode-app/tmp/vexen-client-smoke-20261101/apps/cursor-cli/squashfs-root/usr/share/cursor/resources/app/out/vs/workbench/workbench.desktop.main.js:18881:6543)"
+}
