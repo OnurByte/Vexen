@@ -219,3 +219,39 @@ fn crlf_line_endings_are_preserved() {
     let text = read(&file);
     assert!(text.contains("\r\n") && !text.replace("\r\n", "").contains('\n'));
 }
+
+#[test]
+fn opencode_gets_the_current_servers_shape_by_default() {
+    let (_d, h) = home();
+    let oc = ["--agent", "opencode", "--scope", "global"];
+    assert!(run(&h, "install", &oc, &[]).status.success());
+    let v: serde_json::Value =
+        serde_json::from_str(&read(&h.join(".config/opencode/opencode.json"))).unwrap();
+    let entry = &v["mcp"]["servers"]["vexen"];
+    assert_eq!(entry["type"], "local");
+    assert_eq!(entry["command"][1], "mcp");
+    assert!(v["mcp"].get("vexen").is_none());
+    assert!(out(&run(&h, "install", &oc, &[])).contains("unchanged"));
+    assert!(run(&h, "uninstall", &oc, &[]).status.success());
+    let after: serde_json::Value =
+        serde_json::from_str(&read(&h.join(".config/opencode/opencode.json"))).unwrap();
+    assert!(after["mcp"]["servers"].get("vexen").is_none());
+}
+
+#[test]
+fn opencode_keeps_a_legacy_layout_when_the_file_already_uses_it() {
+    let (_d, h) = home();
+    let file = h.join(".config/opencode/opencode.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    fs::write(
+        &file,
+        r#"{"mcp":{"other":{"type":"local","command":["x"],"enabled":true}}}"#,
+    )
+    .unwrap();
+    let oc = ["--agent", "opencode", "--scope", "global"];
+    assert!(run(&h, "install", &oc, &[]).status.success());
+    let v: serde_json::Value = serde_json::from_str(&read(&file)).unwrap();
+    assert_eq!(v["mcp"]["vexen"]["enabled"], true);
+    assert!(v["mcp"].get("servers").is_none());
+    assert_eq!(v["mcp"]["other"]["command"][0], "x");
+}
