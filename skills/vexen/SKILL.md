@@ -42,7 +42,7 @@ vexen record --path src/payments/retry.rs \
   --summary "Retrying the charge after a timeout created a second charge"
 ```
 
-It prints an event id. A note with no test result is saved as an unverified candidate and `vexen check` will not show it yet, because Vexen only surfaces observed failures and accepted decisions. If you ran a test that showed the failure (run it only because the user's task needs it, never just for Vexen), attach the result:
+It prints an event id. A note with no test result is saved as an unverified candidate and `vexen check` will not show it, because Vexen only surfaces accepted decisions and attempts whose observed test **failed** (non-zero exit code). A passing result keeps a note quiet. If you ran a test that showed the failure (run it only because the user's task needs it, never just for Vexen), attach the result:
 
 ```sh
 vexen outcome <event-id> --test-id retry_timeout_no_duplicate_charge --exit-code 1

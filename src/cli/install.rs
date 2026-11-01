@@ -98,11 +98,17 @@ fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
             force: args.force,
             remove,
         })?;
-        let tag = if args.dry_run { "would " } else { "" };
+        let dry = args.dry_run;
+        let verb = |done: &'static str, plan: &'static str| if dry { plan } else { done };
         match outcome {
-            Outcome::Created(p) => println!("{}: {tag}created {}", adapter.id, p.display()),
-            Outcome::Updated(p) => println!("{}: {tag}updated {}", adapter.id, p.display()),
-            Outcome::Removed(p) => println!("{}: {tag}removed entry from {}", adapter.id, p.display()),
+            Outcome::Created(p) => println!("{}: {} {}", adapter.id, verb("created", "would create"), p.display()),
+            Outcome::Updated(p) => println!("{}: {} {}", adapter.id, verb("updated", "would update"), p.display()),
+            Outcome::Removed(p) => println!(
+                "{}: {} entry from {}",
+                adapter.id,
+                verb("removed", "would remove"),
+                p.display()
+            ),
             Outcome::Unchanged(p) => println!("{}: unchanged {}", adapter.id, p.display()),
             Outcome::Refused { path, reason, snippet } => {
                 failed = true;
