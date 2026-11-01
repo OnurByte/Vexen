@@ -100,7 +100,7 @@ Without MCP, agents save notes with `vexen record --path <file> --summary "<what
 
 We publish results that do not flatter us. Our first experiment tried to predict which files change together. It did not beat plain historical co-change counts on any of ten repositories, so those hints stay research-only and are never shown by default. The numbers measure file retrieval, not whether agents finish tasks better. See the [evaluation and its limitations](docs/benchmarks.md).
 
-Only Claude Code, OpenCode and Codex CLI have been smoke-tested live, once each, on Windows. A small paired pilot (24 real agent runs, toy tasks) is written up in [docs/pilot-results.md](docs/pilot-results.md): an applicable note helped on the two tasks built to need one, Vexen with nothing applicable did no harm, and the sample is far too small to claim an effect in real repositories.
+Only Claude Code, OpenCode and Codex CLI have been smoke-tested live, once each, on Windows. A paired pilot (100 real agent runs on toy tasks, two rounds) is written up in [docs/pilot-results.md](docs/pilot-results.md): with an applicable note the agent passed 11 of 20 tasks that hide a requirement, against 2 of 20 without memory and 0 of 20 when the note was stale; Vexen with nothing to say did no harm on the controls. The tasks are toy-sized and written by us, so no effect in real repositories is claimed.
 
 ## Privacy
 

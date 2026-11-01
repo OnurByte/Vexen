@@ -10,6 +10,7 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 
 ## Unreleased
 
+- `benchmarks/memory`: second pilot round (76 runs, 7 tasks) with per-run logging of `vexen_check` calls; results in docs/pilot-results.md.
 - Codex CLI 0.166.0 smoke-tested live on Windows with the official npm package (a real model called `vexen_check`). The registry label for Codex is updated.
 - OpenCode 2.2.5 smoke-tested live on Windows (installer-written config, `vexen_check` called by a real model). The registry label for OpenCode is updated.
 

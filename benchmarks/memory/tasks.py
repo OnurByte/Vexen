@@ -47,3 +47,7 @@ TASKS = {
         "hidden": 'import sys\nsys.path.insert(0, ".")\nimport mathx\nassert mathx.clamp(11, 0, 10) == 10\nassert mathx.clamp(10, 0, 10) == 10\nassert mathx.clamp(0, 0, 10) == 0\nprint("hidden ok")\n',
     },
 }
+
+from tasks_extra import EXTRA  # noqa: E402
+
+TASKS.update(EXTRA)
