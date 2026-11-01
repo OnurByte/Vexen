@@ -1,0 +1,62 @@
+[
+  {
+    "name": "bat",
+    "source": "https://github.com/sharkdp/bat.git",
+    "head": "e95c32b6f0c31eae638e492f9cc58a075b0e9950",
+    "reachable_commits": 4072
+  },
+  {
+    "name": "delta",
+    "source": "https://github.com/dandavison/delta.git",
+    "head": "3c2269c6b845913965575f11b0196d70ef5352f3",
+    "reachable_commits": 2197
+  },
+  {
+    "name": "fd",
+    "source": "https://github.com/sharkdp/fd.git",
+    "head": "cc4e40fa4e32d61733cd72926e233a3fb6c8d56d",
+    "reachable_commits": 2105
+  },
+  {
+    "name": "fzf",
+    "source": "https://github.com/junegunn/fzf.git",
+    "head": "26ff936df038b6a62ec42cf18db27b2ea2bb8ec3",
+    "reachable_commits": 3766
+  },
+  {
+    "name": "hyperfine",
+    "source": "https://github.com/sharkdp/hyperfine.git",
+    "head": "c5161524980522320c7d3425e714cc0965a869a5",
+    "reachable_commits": 1213
+  },
+  {
+    "name": "jq",
+    "source": "https://github.com/jqlang/jq.git",
+    "head": "992db9b7e5e3059b764bf430bd97716829e99578",
+    "reachable_commits": 1986
+  },
+  {
+    "name": "just",
+    "source": "https://github.com/casey/just.git",
+    "head": "c7317c85c21ebd83ea4bb8de26f8afec44c7e597",
+    "reachable_commits": 2005
+  },
+  {
+    "name": "ripgrep",
+    "source": "https://github.com/BurntSushi/ripgrep.git",
+    "head": "91f5d22ef48bde459d90a8c7dbeab416e97d0f2b",
+    "reachable_commits": 2303
+  },
+  {
+    "name": "tokei",
+    "source": "https://github.com/XAMPPRocky/tokei.git",
+    "head": "c14f744716272fadeb27a74443cdffa0af35f82f",
+    "reachable_commits": 1119
+  },
+  {
+    "name": "zoxide",
+    "source": "https://github.com/ajeetdsouza/zoxide.git",
+    "head": "f0b31631d295b0623bc440016ed0aba3c7c49dde",
+    "reachable_commits": 656
+  }
+]
