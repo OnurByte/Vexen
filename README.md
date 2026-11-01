@@ -73,7 +73,9 @@ On a fresh repository the honest answer is "no relevant evidence", and that is w
 
 Agents pass the repository root explicitly on every call, so one server never leaks memory between projects. Your data lives in `.vexen/` inside the repository, and the database files are ignored by Git. `vexen export` and `vexen import` move it as versioned JSONL.
 
-**Coming: `npx`.** A small launcher in [`npm/`](npm/) will download a checksummed binary for your platform, so `npx @onurbyte/vexen init` works without Rust. It is not published yet; see [`npm/README.md`](npm/README.md).
+**No Rust?** Prebuilt binaries with SHA-256 checksums for Windows, Linux (x64, arm64) and macOS (x64, arm64) are on the [Releases page](https://github.com/OnurByte/Vexen/releases). They are early builds and have not been tested with live agent clients.
+
+**Coming: `npx`.** The launcher in [`npm/`](npm/) downloads and verifies those same binaries, so `npx @onurbyte/vexen init` will work without Rust. It is tested against the real release but not published to npm yet; see [`npm/README.md`](npm/README.md).
 
 ## Where Vexen stands
 
