@@ -66,24 +66,26 @@ Choose your system. Download the app or use npx with [Node.js 18+](https://nodej
 <img src="docs/assets/icons/windows-11.svg" width="48" height="48" alt="Windows" /><br/>
 <strong>Windows</strong><br/><br/>
 <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-pc-windows-msvc.zip">Download ZIP</a><br/>
-<a href="#windows--powershell">Use npx ↓</a>
+<a href="#install-windows">Use npx ↓</a>
 </td>
 <td width="33%" align="center" valign="top">
 <img src="docs/assets/icons/macos.svg" width="48" height="48" alt="macOS" /><br/>
 <strong>macOS</strong><br/><br/>
 <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-apple-darwin.tar.gz">Apple Silicon</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-apple-darwin.tar.gz">Intel</a><br/>
-<a href="#macos">Use npx ↓</a>
+<a href="#install-macos">Use npx ↓</a>
 </td>
 <td width="33%" align="center" valign="top">
 <img src="docs/assets/icons/linux.svg" width="48" height="48" alt="Linux" /><br/>
 <strong>Linux</strong><br/><br/>
 <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-unknown-linux-gnu.tar.gz">Download x64</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-unknown-linux-gnu.tar.gz">ARM64</a><br/>
-<a href="#linux">Use npx ↓</a>
+<a href="#install-linux">Use npx ↓</a>
 </td>
 </tr>
 </table>
 
 Run the commands for your system inside your Git project:
+
+<a name="install-windows"></a>
 
 ### Windows · PowerShell
 
@@ -92,12 +94,16 @@ npx.cmd @onurbyte/vexen init
 npx.cmd @onurbyte/vexen install --scope global --npx
 ```
 
+<a name="install-macos"></a>
+
 ### macOS
 
 ```sh
 npx @onurbyte/vexen init
 npx @onurbyte/vexen install --scope global --npx
 ```
+
+<a name="install-linux"></a>
 
 ### Linux
 
