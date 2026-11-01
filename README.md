@@ -7,7 +7,7 @@
 
 <h1 align="center">Vexen</h1>
 
-<p align="center"><strong>Give your next coding agent a head start.</strong><br/>Local, evidence-based memory for the agents working in your repository.</p>
+<p align="center"><strong>Give your next coding agent a head start.</strong><br/>Coding agents forget what failed. Vexen keeps a local, source-linked record of it in your repository, and says nothing when it no longer applies.</p>
 
 <p align="center">
   <img alt="Status: early development" src="https://img.shields.io/badge/status-early%20development-78a9ff?labelColor=262626" />
@@ -41,7 +41,7 @@ Your history shows what shipped. It rarely shows what was tried and abandoned, o
 
 <p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
 
-The example is fictional and shows the planned format. It is not output from a Vexen run.
+This example is fictional and shows the planned format. On a fresh repository the real answer is "no relevant evidence" (see the terminal output below).
 
 ## Built to stay out of your way
 
@@ -65,7 +65,7 @@ vexen check --diff HEAD
 
 On a fresh repository the honest answer is "no relevant evidence", and that is what you see.
 
-**Connect your clients in one step.** `vexen install` adds the MCP entry to the config files of the agents it finds (Claude Code, Codex CLI, Cursor, Gemini CLI, Windsurf, Kiro, VS Code, OpenCode). Preview first, then apply; `vexen uninstall` removes only what it added:
+**Connect your clients with one command.** `vexen install` adds the MCP entry to the config files of the agents it finds (Claude Code, Codex CLI, Cursor, Gemini CLI, Windsurf, Kiro, VS Code, OpenCode). Preview first, then apply; `vexen uninstall` removes only what it added:
 
 ```sh
 vexen install --scope global --dry-run
@@ -74,7 +74,7 @@ vexen install --scope global
 
 It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds. The file formats of the automated clients are covered by tests. Claude Code (2.1.309, Windows) has been checked live: it launched the server from the file `vexen install` wrote and a `vexen_check` call returned a recorded failure. The other clients are config-tested only.
 
-**Use it from an agent.** `vexen mcp --stdio` serves four MCP tools (`vexen_check`, `vexen_record`, `vexen_outcome`, `vexen_explain`). Point any MCP client at it, for example:
+**Use it from an agent.** `vexen mcp --stdio` serves four MCP tools: `vexen_check` reads past evidence for a file, `vexen_record` saves a failed attempt or a decision, `vexen_outcome` attaches a test result, and `vexen_explain` shows where a note came from. Point any MCP client at it, for example:
 
 ```json
 { "command": "vexen", "args": ["mcp", "--stdio"] }
@@ -88,11 +88,11 @@ Agents pass the repository root explicitly on every call, so one server never le
 npx skills add OnurByte/Vexen
 ```
 
-Without MCP, agents save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`, or run the test and attach it in one step with `vexen observe <id> --test-id <test> -- <command>` (only the exit code and an output hash are stored).
+Without MCP, agents save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`, or run the test and attach it in one step with `vexen observe <id> --test-id <test> -- <command>` (`<id>` is the id `vexen record` printed) (only the exit code and an output hash are stored).
 
 **No Rust?** Prebuilt binaries with SHA-256 checksums for Windows, Linux (x64, arm64) and macOS (x64, arm64) are on the [Releases page](https://github.com/OnurByte/Vexen/releases). They are early builds and have not been tested with live agent clients.
 
-**`npx`, no install.** `npx @onurbyte/vexen init` works without Rust: a small launcher in [`npm/`](npm/) downloads the checksummed binary for your platform on first run, verifies it, and runs it. For an MCP client use `{ "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }`. See [`npm/README.md`](npm/README.md).
+**`npx`, without installing Rust.** `npx @onurbyte/vexen init` works without Rust: a small launcher in [`npm/`](npm/) downloads the checksummed binary for your platform on first run, verifies it, and runs it. For an MCP client use `{ "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }`. See [`npm/README.md`](npm/README.md).
 
 ## Where Vexen stands
 

@@ -351,3 +351,19 @@ fn record_refuses_hidden_paths_written_with_backslashes() {
     let (ok, _, _) = run(&["record", "--path", r"config\.env", "--summary", "hidden"], &root);
     assert!(!ok);
 }
+
+#[test]
+fn item_status_uses_the_same_snake_case_names_as_the_envelope() {
+    let (_dir, root) = repository();
+    vexen(&["init"], &root);
+    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "retry loop"], &root);
+    let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    run(&["outcome", &id, "--test-id", "t", "--exit-code", "1"], &root);
+    let (_, check, _) = run(&["check", "--path", "main.rs"], &root);
+    let v: serde_json::Value = serde_json::from_str(&check).unwrap();
+    assert_eq!(v["status"], "observed_failure");
+    assert_eq!(v["items"][0]["status"], "observed_failure", "{v}");
+}

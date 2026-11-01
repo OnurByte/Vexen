@@ -1,6 +1,6 @@
 use super::schema::{CheckInput, ExplainInput, OutcomeInput, RecordInput};
 use crate::{
-    analysis::{RepoContext, rank_applicable},
+    analysis::{AdvisoryStatus, RepoContext, rank_applicable},
     privacy::{contains_secret, resolve_repo_path},
     store::{EventId, EventKind, NewEvent, Store, StoreQuery},
 };
@@ -23,6 +23,15 @@ pub enum McpInputError {
     NotFound,
 }
 type Result<T> = std::result::Result<T, McpInputError>;
+
+/// Same snake_case vocabulary as the envelope's `status`.
+fn advisory_status(status: AdvisoryStatus) -> &'static str {
+    match status {
+        AdvisoryStatus::ObservedFailure => "observed_failure",
+        AdvisoryStatus::AcceptedDecision => "accepted_decision",
+        AdvisoryStatus::Conflicted => "conflicted",
+    }
+}
 
 pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
     let root = canonical_root(&input.repo_root)?;
@@ -52,12 +61,12 @@ pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
         })
         .map_err(store_error)?;
     let advisories = rank_applicable(&records, &ctx, 3);
-    let items = advisories.iter().map(|a| serde_json::json!({"id":a.id,"status":format!("{:?}",a.status).to_ascii_lowercase(),"text":a.text})).collect::<Vec<_>>();
+    let items = advisories.iter().map(|a| serde_json::json!({"id":a.id,"status":advisory_status(a.status),"text":a.text})).collect::<Vec<_>>();
     let status = if advisories.is_empty() {
         "no_relevant_evidence"
     } else if advisories
         .iter()
-        .any(|a| format!("{:?}", a.status) != "AcceptedDecision")
+        .any(|a| a.status != AdvisoryStatus::AcceptedDecision)
     {
         "observed_failure"
     } else {
