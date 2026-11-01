@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Tag, Cargo.toml and npm/package.json must agree
-        run: |
-          tag="${GITHUB_REF_NAME#v}"
-          cargo_v=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)
-          npm_v=$(sed -n 's/.*"version": "\(.*\)".*/\1/p' npm/package.json | head -n1)
-          echo "tag=$tag cargo=$cargo_v npm=$npm_v"
-          [ "$tag" = "$cargo_v" ] && [ "$tag" = "$npm_v" ]
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate exact SemVer and intentional release progression
+        run: node npm/scripts/check-release.cjs "$GITHUB_REF_NAME"
 
   create-release:
     needs: check-version
