@@ -11,6 +11,8 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 ## Unreleased
 
 - `vexen setup`, `vexen demo`, `vexen doctor --mcp`, `vexen uninstall --skill`: guided Rust-native setup with a real server check, a synthetic demo, and an embedded skill with an ownership marker. Not in a published version yet.
+- Fix: `vexen_check` with `paths` no longer lets free-text `query` hide the note recorded for that file. A real-agent run showed 0 of 6 runs that sent `query` received the lesson.
+- New evaluation rows `pilot-3` and `pilot-4-memory-on` (historical pilots untouched); see the research summary for caveats.
 - Skill rewritten MCP-first; setup records the command for the machine in it.
 - Tests: property-based lifecycle tests (`proptest`), setup/demo tests, and a CI job that drives the server with the pinned MCP Inspector (`scripts/inspector_smoke.py`).
 - README cards regenerated for phone widths (`scripts/generate_readme_cards.py`).

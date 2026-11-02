@@ -218,3 +218,50 @@ fn a_note_comes_back_only_when_the_file_content_does() {
     ])
     .unwrap();
 }
+
+/// Found by the real-agent evaluation: agents describe their task in free text, and
+/// when that text shared no words with the note, the note recorded for the very file
+/// they asked about was hidden (6 of 6 such runs got nothing; 14 of 14 without text did).
+#[test]
+fn free_text_that_matches_nothing_does_not_hide_the_note_for_the_asked_file() {
+    let ops = [Op::Record { file: 0, text: 0 }, Op::Outcome { rec: 0, failing: true }];
+    run_case(&ops).unwrap();
+    let tmp = tempfile::tempdir().unwrap();
+    let root = fs::canonicalize(tmp.path()).unwrap();
+    git(&root, &["init", "-q"]);
+    fs::write(root.join("f0.rs"), content(0, 0)).unwrap();
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-qm", "init"]);
+    Store::initialize(&root).unwrap();
+    let repo_root = root.to_string_lossy().into_owned();
+    let envelope = record(RecordInput {
+        repo_root: repo_root.clone(),
+        record: NewEvent {
+            idempotency_key: "k0".into(),
+            kind: EventKind::Attempt,
+            summary: "rounding with floats lost a cent".into(),
+            anchor_path: "f0.rs".into(),
+            anchor_sha256: sha(&content(0, 0)),
+            git_commit: Some(git(&root, &["rev-parse", "HEAD"])),
+            conditions: vec![],
+        },
+    })
+    .unwrap();
+    let id = envelope.items[0]["event_id"].as_str().unwrap().to_owned();
+    outcome(OutcomeInput {
+        repo_root: repo_root.clone(),
+        event_id: id,
+        outcome: Some(NewOutcome { idempotency_key: "o0".into(), test_id: "t".into(), exit_code: 1, output_sha256: None }),
+        supersede: None,
+    })
+    .unwrap();
+    let ask = |query: &str, paths: Option<Vec<String>>| {
+        check(CheckInput { repo_root: repo_root.clone(), paths, diff_ref: None, query: Some(query.into()), conditions: None })
+            .unwrap()
+            .items
+            .len()
+    };
+    assert_eq!(ask("implement total(prices) with a discount", Some(vec!["f0.rs".into()])), 1);
+    assert_eq!(ask("rounding", Some(vec!["f0.rs".into()])), 1);
+    assert_eq!(ask("implement total(prices)", Some(vec!["other.rs".into()])), 0, "another file stays silent");
+}

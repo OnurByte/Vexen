@@ -14,6 +14,7 @@ Where Vexen stands today, in one page. Anything not listed under *Shipped* is no
 
 ## Checked with real clients and agents
 
+- Memory pilot after the delivery fixes: 3 of 20 without memory, 12 of 20 with memory (lesson delivered in 14), then 17 of 20 with memory and 20 of 20 delivered after a `query` fix. One model, synthetic tasks, caveats in the [research summary](research.md#memory-pilot-follow-up-after-the-delivery-fixes).
 - Claude Code, OpenCode and Codex CLI: one live session each on Windows. 13 more clients completed a real `vexen_check` call on Linux. Per-client detail and limits: [client checks](client-smoke-tests.md).
 - A paired coding pilot (synthetic tasks, one model) and a retrieval analysis: [research summary](research.md).
 

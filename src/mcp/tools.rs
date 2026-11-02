@@ -54,13 +54,25 @@ pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
     }
     let conditions = input.conditions.unwrap_or_default();
     let ctx = RepoContext::new(&store, query_paths, conditions).map_err(McpInputError::Invalid)?;
+    let query = input.query.unwrap_or_default();
     let mut selection = AdvisorySelection::new(3);
     store
-        .visit_search(&input.query.unwrap_or_default(), |record| {
+        .visit_search(&query, |record| {
             selection.consider(record, &ctx);
             !selection.is_full()
         })
         .map_err(store_error)?;
+    if !query.trim().is_empty() && !ctx.query_paths().is_empty() && selection.is_empty() {
+        // Free text is a hint, not an eligibility rule: an agent that describes its
+        // task in its own words must still get the note recorded for the file it asks about.
+        selection = AdvisorySelection::new(3);
+        store
+            .visit_search("", |record| {
+                selection.consider(record, &ctx);
+                !selection.is_full()
+            })
+            .map_err(store_error)?;
+    }
     if selection.needs_conflict_scan() {
         // Search words must not conceal a contradictory result for the same
         // anchor state. Reconcile selected groups against all stored evidence.

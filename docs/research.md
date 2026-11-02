@@ -16,6 +16,20 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 
 **Sources:** [Report and intervals](pilot-results.md), [raw rows](../benchmarks/memory/results/pilot-2.jsonl), [method and reproduction command](../benchmarks/memory/README.md), [first three tasks](../benchmarks/memory/tasks.py), [additional tasks](../benchmarks/memory/tasks_extra.py).
 
+## Memory pilot, follow-up after the delivery fixes
+
+**Why:** The first pilot left open whether the lesson reached the agent. A new run (`pilot-3`, same five quirk tasks, two controls, 76 cells, one seed, Claude Code 2.1.309 with Haiku on Windows) used the instrumented runner, which records every `vexen_check` call, its arguments and its status.
+
+**What it showed:** Memory on: 12 of 20 passed, memory off: 3 of 20, stale note: 2 of 20, controls: 8 of 8 in both arms. The lesson was delivered (status `observed_failure`) in 14 of 20 memory-on runs; those 14 produced all 12 passes, and the 6 runs without delivery produced none. All 6 had a cause in common: the agent passed free text in the `query` argument, and Vexen treated that text as a filter, so a note for the very file asked about was hidden (0 of 6 delivered with `query`, 14 of 14 without).
+
+**Fix:** with `paths` given, free text is now a hint and no longer hides the note for the asked file (`src/mcp/tools.rs`, regression test in `tests/lifecycle.rs`).
+
+**After the fix (`pilot-4-memory-on`):** the 20 memory-on quirk cells were run again with the fixed binary: the lesson was delivered in 20 of 20 and 17 of 20 passed. This run has no memory-off arm of its own; compare with the 3 of 20 of `pilot-3`.
+
+**Limits:** One model and agent, synthetic tasks, tailored notes, an explicit instruction to check memory, and four repetitions per cell on shared tasks (clustered, so the intervals are optimistic). The fix was made after looking at `pilot-3`'s failures, so `pilot-4` is a check of that fix, not an untouched test; the off and stale arms were not re-run. Only the memory-on rows were repeated; no cell was selected by outcome. This does not show general coding improvement. The published 11/20 versus 2/20 stays as it was.
+
+**Sources:** [pilot-3 rows](../benchmarks/memory/results/pilot-3.jsonl), [table](../benchmarks/memory/results/pilot-3.table.md), [manifest](../benchmarks/memory/results/pilot-3.manifest.json), [pilot-4 rows](../benchmarks/memory/results/pilot-4-memory-on.jsonl), [table](../benchmarks/memory/results/pilot-4-memory-on.table.md).
+
 ## Relevance checks
 
 **Question:** What happens when the note is stale or about a different file?

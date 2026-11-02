@@ -133,7 +133,11 @@ The review also exposed a preexisting response-budget gap: clipping an error to 
 Reviewed follow-up verification: all **92 Rust tests**, all **3 Python parser tests** and all **12 deterministic delivery cells** passed. The rebuilt debug binary was used for the delivery checks. Changed Rust files passed direct formatting checks; `git diff --check` passed. The independent reviewer reran and approved the two review-follow-up tests. Historical task definitions and both original pilot JSONL files have no diff. These checks still do not establish real-agent task completion; authentication remains the external prerequisite for the fresh planned cohort.
 
 
-## Current external blocker
+## Fresh evaluation completed (2026-11-02)
+
+The blocker below was cleared: an authenticated Claude Code was available on the development machine. Results and caveats are in the [research summary](research.md#memory-pilot-follow-up-after-the-delivery-fixes); rows are in `benchmarks/memory/results/pilot-3.jsonl` and `pilot-4-memory-on.jsonl`. The historical `pilot-1` and `pilot-2` files are unchanged. The new run found one more product issue (free-text `query` hid the note for the asked file) which is fixed and covered by a regression test.
+
+## Earlier external blocker (resolved)
 
 Claude Code authentication remained unavailable on the third consecutive goal turn: a fresh `claude auth status` returned `loggedIn: false` and `authMethod: none`. Local fixes, regression checks and independent review are recorded above. Further task-success conclusions require real agent executions; additional unrelated edits or deterministic checks cannot establish the requested outcome. Run Claude Code `/login` in a terminal, then resume the evaluation using the commands above. The goal is blocked, not complete.
 

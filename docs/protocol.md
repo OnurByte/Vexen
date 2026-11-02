@@ -31,7 +31,7 @@ All tools return `structuredContent` and a compact text block:
 
 ## Inputs
 
-- `vexen_check`: `repo_root`; optional `paths` (repo-relative), `diff_ref` (a Git ref whose changed files are the scope), `query` (text search), `conditions` (strings an applicable note must match).
+- `vexen_check`: `repo_root`; optional `paths` (repo-relative), `diff_ref` (a Git ref whose changed files are the scope), `query` (text hint: matching notes come first; when `paths` is given and the text matches nothing, the notes for those files are still returned), `conditions` (strings an applicable note must match).
 - `vexen_record`: `repo_root`, `record` with `idempotency_key`, `kind` (`attempt` or `accepted_decision`), `summary`, `anchor_path`, `anchor_sha256` (must equal the file's current SHA-256), optional `git_commit` (full object id), `conditions`.
 - `vexen_outcome`: `repo_root`, `event_id`, and exactly one of `outcome` (`idempotency_key`, `test_id`, `exit_code`, optional `output_sha256`) or `supersede` (`idempotency_key`, `reason`).
 - `vexen_explain`: `repo_root`, `event_id`.

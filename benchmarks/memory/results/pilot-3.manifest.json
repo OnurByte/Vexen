@@ -1,0 +1,402 @@
+{
+  "vexen_sha256": "906334c558380d83e4338ced4797968e6eed18ddafc597e67041f8812aab089c",
+  "runner_sha256": "18ef9da57e3e076630684b8c5bc1c924dcaf217b6dcce1318b4f2323668a3da2",
+  "source_commit": "53302d9f45a5de14aecd56715ef6b433b68a14ac",
+  "source_dirty": false,
+  "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+  "python_executable": "<home>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+  "planned_cells": [
+    {
+      "task": "slug",
+      "condition": "stale",
+      "rep": 3
+    },
+    {
+      "task": "bom",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "csvrows",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "dates",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "csvrows",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "slug",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "dates",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "clamp",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "rounding",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "slug",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "dates",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "dates",
+      "condition": "stale",
+      "rep": 2
+    },
+    {
+      "task": "bom",
+      "condition": "stale",
+      "rep": 1
+    },
+    {
+      "task": "csvrows",
+      "condition": "stale",
+      "rep": 0
+    },
+    {
+      "task": "bom",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "clamp",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "bom",
+      "condition": "stale",
+      "rep": 3
+    },
+    {
+      "task": "rounding",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "rounding",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "mean",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "dates",
+      "condition": "stale",
+      "rep": 0
+    },
+    {
+      "task": "csvrows",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "rounding",
+      "condition": "stale",
+      "rep": 2
+    },
+    {
+      "task": "slug",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "rounding",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "rounding",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "slug",
+      "condition": "stale",
+      "rep": 0
+    },
+    {
+      "task": "slug",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "rounding",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "bom",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "rounding",
+      "condition": "stale",
+      "rep": 3
+    },
+    {
+      "task": "mean",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "clamp",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "slug",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "csvrows",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "clamp",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "slug",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "mean",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "rounding",
+      "condition": "stale",
+      "rep": 1
+    },
+    {
+      "task": "mean",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "rounding",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "bom",
+      "condition": "stale",
+      "rep": 0
+    },
+    {
+      "task": "slug",
+      "condition": "stale",
+      "rep": 1
+    },
+    {
+      "task": "bom",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "bom",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "stale",
+      "rep": 1
+    },
+    {
+      "task": "slug",
+      "condition": "on",
+      "rep": 3
+    },
+    {
+      "task": "bom",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "mean",
+      "condition": "off",
+      "rep": 2
+    },
+    {
+      "task": "csvrows",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "csvrows",
+      "condition": "stale",
+      "rep": 3
+    },
+    {
+      "task": "csvrows",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "csvrows",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "csvrows",
+      "condition": "stale",
+      "rep": 1
+    },
+    {
+      "task": "rounding",
+      "condition": "stale",
+      "rep": 0
+    },
+    {
+      "task": "bom",
+      "condition": "off",
+      "rep": 3
+    },
+    {
+      "task": "dates",
+      "condition": "stale",
+      "rep": 3
+    },
+    {
+      "task": "slug",
+      "condition": "stale",
+      "rep": 2
+    },
+    {
+      "task": "clamp",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "csvrows",
+      "condition": "stale",
+      "rep": 2
+    },
+    {
+      "task": "mean",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "clamp",
+      "condition": "off",
+      "rep": 0
+    },
+    {
+      "task": "clamp",
+      "condition": "on",
+      "rep": 2
+    },
+    {
+      "task": "slug",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "mean",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "bom",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "bom",
+      "condition": "stale",
+      "rep": 2
+    },
+    {
+      "task": "csvrows",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "dates",
+      "condition": "off",
+      "rep": 1
+    },
+    {
+      "task": "rounding",
+      "condition": "on",
+      "rep": 1
+    },
+    {
+      "task": "mean",
+      "condition": "on",
+      "rep": 0
+    },
+    {
+      "task": "clamp",
+      "condition": "off",
+      "rep": 3
+    }
+  ],
+  "seed": 3,
+  "repetitions": 4,
+  "claude_version": "2.1.309 (Claude Code)",
+  "task_sha256": {
+    "bom": "b3aa5aab1ad0ba27956138272615137b70a81c0caab12ee30fccd5e43a20d9c4",
+    "rounding": "aed7eb58ccbdbae6cd5a5abe17c96354421dfc9ab113a09b42ff55a54ff63250",
+    "clamp": "ef86710673f563e5797e660ff5c71ec38f8b8176b1eb6b2d1f919f77222baace",
+    "slug": "ceebf838a3662e0e0d786aed5d4ec5fc887a59eb1705554ac45c399931e5b336",
+    "dates": "dc54fc81737e6cbb10ab4a3f751a0530d81ab40f0d853720829f8fab955e2266",
+    "csvrows": "f4ba0c2c0622bc4893edf1a8e2234056be8b1b950aea562ddbf82b806ec66a24",
+    "mean": "a9f47f5db5bf3e1ee7d01abe1eb86aa43a4c32a292e599ebbdf4d2c37c33dc64"
+  }
+}

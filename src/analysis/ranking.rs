@@ -43,6 +43,10 @@ impl AdvisorySelection {
         self.records.len() >= self.limit
     }
 
+    pub(crate) fn is_empty(&self) -> bool {
+        self.records.is_empty()
+    }
+
     pub(crate) fn needs_conflict_scan(&self) -> bool {
         self.records.iter().any(|r| r.kind == EventKind::Attempt)
     }
