@@ -1,8 +1,8 @@
 use super::schema::{CheckInput, ExplainInput, OutcomeInput, RecordInput};
 use crate::{
-    analysis::{AdvisoryStatus, RepoContext, rank_applicable},
+    analysis::{AdvisoryStatus, RepoContext, ranking::AdvisorySelection},
     privacy::{contains_secret, resolve_repo_path},
-    store::{EventId, EventKind, NewEvent, Store, StoreQuery},
+    store::{EventId, EventKind, NewEvent, Store},
 };
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -54,14 +54,28 @@ pub fn check(input: CheckInput) -> Result<Envelope<serde_json::Value>> {
     }
     let conditions = input.conditions.unwrap_or_default();
     let ctx = RepoContext::new(&store, query_paths, conditions).map_err(McpInputError::Invalid)?;
-    let records = store
-        .search(StoreQuery {
-            text: input.query.unwrap_or_default(),
-            limit: 100,
+    let mut selection = AdvisorySelection::new(3);
+    store
+        .visit_search(&input.query.unwrap_or_default(), |record| {
+            selection.consider(record, &ctx);
+            !selection.is_full()
         })
         .map_err(store_error)?;
-    let advisories = rank_applicable(&records, &ctx, 3);
-    let items = advisories.iter().map(|a| serde_json::json!({"id":a.id,"status":advisory_status(a.status),"text":a.text})).collect::<Vec<_>>();
+    if selection.needs_conflict_scan() {
+        // Search words must not conceal a contradictory result for the same
+        // anchor state. Reconcile selected groups against all stored evidence.
+        store
+            .visit_search("", |record| {
+                selection.observe_conflict(record, &ctx);
+                true
+            })
+            .map_err(store_error)?;
+    }
+    let advisories = selection.finish();
+    let items = advisories
+        .iter()
+        .map(|a| serde_json::json!({"id":a.id,"status":advisory_status(a.status),"text":a.text}))
+        .collect::<Vec<_>>();
     let status = if advisories.is_empty() {
         "no_relevant_evidence"
     } else if advisories
@@ -156,7 +170,10 @@ fn validate_record(root: &Path, event: &NewEvent) -> Result<()> {
         .map_err(|e| McpInputError::Invalid(e.to_string()))?;
     // Treat both separators alike: `config\.env` is as hidden as `config/.env`.
     let backslash = char::from(92u8);
-    let normalized = event.anchor_path.to_ascii_lowercase().replace(backslash, "/");
+    let normalized = event
+        .anchor_path
+        .to_ascii_lowercase()
+        .replace(backslash, "/");
     if normalized.split('/').any(|p| p.starts_with('.'))
         || normalized.contains("/secret")
         || normalized.starts_with("secret")

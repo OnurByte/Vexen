@@ -26,6 +26,7 @@ use thiserror::Error;
 
 const BUSY_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_QUERY_LIMIT: usize = 1000;
+const STREAM_TEXT_SEARCH_SQL: &str = "SELECT r.id,r.kind,r.summary,r.anchor_path,r.anchor_sha256,r.git_commit,r.conditions_json,r.status,r.outcomes_json FROM records_fts f JOIN records r ON r.rowid=f.rowid WHERE records_fts MATCH ?1 ORDER BY f.rank";
 
 #[derive(Debug, Error)]
 pub enum StoreError {
@@ -370,6 +371,38 @@ impl Store {
             record.repo_id = self.repo_id.clone();
         }
         Ok(records)
+    }
+
+    /// Stream search candidates without a pre-applicability cutoff. The caller
+    /// can stop selection after it has enough eligible records; no unbounded
+    /// candidate vector is built. Public `search` retains its existing limit.
+    pub(crate) fn visit_search<F>(&self, text: &str, mut visit: F) -> Result<()>
+    where
+        F: FnMut(&MemoryRecord) -> bool,
+    {
+        let conn = self.lock()?;
+        let sql = if text.trim().is_empty() {
+            "SELECT id,kind,summary,anchor_path,anchor_sha256,git_commit,conditions_json,status,outcomes_json FROM records ORDER BY rowid DESC"
+        } else {
+            STREAM_TEXT_SEARCH_SQL
+        };
+        let mut stmt = conn.prepare(sql)?;
+        let rows = if text.trim().is_empty() {
+            stmt.query_map([], decode_record)?
+        } else {
+            let Some(literal) = literal_fts_query(text) else {
+                return Ok(());
+            };
+            stmt.query_map([literal], decode_record)?
+        };
+        for row in rows {
+            let mut record = row?;
+            record.repo_id = self.repo_id.clone();
+            if !visit(&record) {
+                break;
+            }
+        }
+        Ok(())
     }
 
     /// SQLite's structural check plus full event-chain hash validation.
@@ -920,4 +953,27 @@ fn decode_record(r: &rusqlite::Row<'_>) -> rusqlite::Result<MemoryRecord> {
         status,
         outcomes,
     })
+}
+
+#[cfg(test)]
+mod search_plan_tests {
+    use super::*;
+
+    #[test]
+    fn streaming_keyword_search_does_not_sort_all_record_payloads() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        migrations::migrate(&mut conn, "query-plan-fixture").unwrap();
+        let mut stmt = conn
+            .prepare(&format!("EXPLAIN QUERY PLAN {STREAM_TEXT_SEARCH_SQL}"))
+            .unwrap();
+        let details = stmt
+            .query_map(["rounding"], |r| r.get::<_, String>(3))
+            .unwrap()
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .unwrap();
+        assert!(
+            !details.iter().any(|d| d.contains("TEMP B-TREE")),
+            "unbounded record sort: {details:?}"
+        );
+    }
 }

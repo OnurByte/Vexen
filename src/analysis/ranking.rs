@@ -22,95 +22,132 @@ pub struct Advisory {
     pub text: String,
 }
 
-/// Filter and bound records, preserving the Store search ordering (FTS rank).
-/// Callers must supply records from the explicitly scoped Store search; ranking
-/// is never allowed to promote an ineligible record.
-pub fn rank_applicable(records: &[MemoryRecord], ctx: &RepoContext, limit: usize) -> Vec<Advisory> {
-    if limit == 0 {
-        return Vec::new();
+/// Select at most three eligible lessons in search order, then reconcile their
+/// outcome groups. Selection memory stays bounded while callers scan the store.
+pub(crate) struct AdvisorySelection {
+    records: Vec<MemoryRecord>,
+    conflicted: Vec<bool>,
+    limit: usize,
+}
+
+impl AdvisorySelection {
+    pub(crate) fn new(limit: usize) -> Self {
+        Self {
+            records: Vec::new(),
+            conflicted: Vec::new(),
+            limit: limit.min(MAX_ITEMS),
+        }
     }
-    let eligible: Vec<&MemoryRecord> = records
-        .iter()
-        .filter(|record| check_applicability(record, ctx) == Eligibility::Eligible)
-        .collect();
-    let mut selected = Vec::new();
-    let mut seen_groups = Vec::<(String, String, Vec<String>)>::new();
-    for record in eligible {
-        // Event kind carries the authority boundary; projection status is
-        // descriptive and cannot promote an attempt into a human decision.
+
+    pub(crate) fn is_full(&self) -> bool {
+        self.records.len() >= self.limit
+    }
+
+    pub(crate) fn needs_conflict_scan(&self) -> bool {
+        self.records.iter().any(|r| r.kind == EventKind::Attempt)
+    }
+
+    pub(crate) fn consider(&mut self, record: &MemoryRecord, ctx: &RepoContext) {
+        if self.is_full() {
+            return;
+        }
         let accepted = record.kind == EventKind::AcceptedDecision;
-        if !accepted && record.status != RecordStatus::Observed {
-            continue;
+        if !accepted
+            && (record.kind != EventKind::Attempt
+                || record.status != RecordStatus::Observed
+                || !record.outcomes.iter().any(|o| o.exit_code != 0))
+        {
+            return;
         }
-        if !accepted && record.outcomes.is_empty() {
-            continue;
+        if !accepted
+            && self
+                .records
+                .iter()
+                .any(|r| r.kind == EventKind::Attempt && same_group(r, record))
+        {
+            return;
         }
-        let group = (
-            record.anchor_path.clone(),
-            record.anchor_sha256.clone(),
-            record.conditions.clone(),
-        );
-        if !accepted && seen_groups.contains(&group) {
-            continue;
+        if check_applicability(record, ctx) != Eligibility::Eligible {
+            return;
         }
-        let related: Vec<_> = records
+        self.records.push(record.clone());
+        self.conflicted.push(false);
+    }
+
+    pub(crate) fn observe_conflict(&mut self, record: &MemoryRecord, ctx: &RepoContext) {
+        if record.kind != EventKind::Attempt
+            || record.status != RecordStatus::Observed
+            || !record.outcomes.iter().any(|o| o.exit_code == 0)
+        {
+            return;
+        }
+        for (i, selected) in self.records.iter().enumerate() {
+            if !self.conflicted[i]
+                && selected.kind == EventKind::Attempt
+                && same_group(selected, record)
+                && check_applicability(record, ctx) == Eligibility::Eligible
+            {
+                self.conflicted[i] = true;
+            }
+        }
+    }
+
+    pub(crate) fn finish(self) -> Vec<Advisory> {
+        let selected = self
+            .records
             .iter()
-            .filter(|other| {
-                other.anchor_path == group.0
-                    && other.anchor_sha256 == group.1
-                    && other.conditions == group.2
-                    && check_applicability(other, ctx) == Eligibility::Eligible
-                    && other.kind == EventKind::Attempt
-                    && other.status == RecordStatus::Observed
+            .zip(self.conflicted)
+            .map(|(record, conflict)| {
+                let status = if record.kind == EventKind::AcceptedDecision {
+                    AdvisoryStatus::AcceptedDecision
+                } else if conflict {
+                    AdvisoryStatus::Conflicted
+                } else {
+                    AdvisoryStatus::ObservedFailure
+                };
+                let qualifier = match status {
+                    AdvisoryStatus::AcceptedDecision => {
+                        "Human-accepted decision (not a verified test result)"
+                    }
+                    AdvisoryStatus::ObservedFailure => {
+                        "Observed failure (applicability checked; not a guarantee)"
+                    }
+                    AdvisoryStatus::Conflicted => {
+                        "Conflicting observed outcomes; abstain from a definitive conclusion"
+                    }
+                };
+                Advisory {
+                    id: record.id.to_string(),
+                    status,
+                    text: format!(
+                        "{qualifier} for {}: {}",
+                        record.anchor_path,
+                        quote_untrusted(&record.summary)
+                    ),
+                }
             })
             .collect();
-        let has_failure = related
-            .iter()
-            .flat_map(|r| r.outcomes.iter())
-            .any(|o| o.exit_code != 0);
-        let has_success = related
-            .iter()
-            .flat_map(|r| r.outcomes.iter())
-            .any(|o| o.exit_code == 0);
-        let conflict = !accepted && has_failure && has_success;
-        if !accepted && !has_failure {
-            continue;
-        }
-        if !accepted {
-            // Do not consume a group until it can produce an advisory. This
-            // keeps success-only records from suppressing a later failure.
-            seen_groups.push(group);
-        }
-        let status = if accepted {
-            AdvisoryStatus::AcceptedDecision
-        } else if conflict {
-            AdvisoryStatus::Conflicted
-        } else {
-            AdvisoryStatus::ObservedFailure
-        };
-        let qualifier = match status {
-            AdvisoryStatus::AcceptedDecision => {
-                "Human-accepted decision (not a verified test result)"
-            }
-            AdvisoryStatus::ObservedFailure => {
-                "Observed failure (applicability checked; not a guarantee)"
-            }
-            AdvisoryStatus::Conflicted => {
-                "Conflicting observed outcomes; abstain from a definitive conclusion"
-            }
-        };
-        let quoted = quote_untrusted(&record.summary);
-        let text = format!("{qualifier} for {}: {quoted}", record.anchor_path);
-        selected.push(Advisory {
-            id: record.id.to_string(),
-            status,
-            text,
-        });
-        if selected.len() >= limit.min(MAX_ITEMS) {
-            break;
-        }
+        bound_output(selected)
     }
-    bound_output(selected)
+}
+
+fn same_group(a: &MemoryRecord, b: &MemoryRecord) -> bool {
+    a.anchor_path == b.anchor_path
+        && a.anchor_sha256 == b.anchor_sha256
+        && a.conditions == b.conditions
+}
+
+/// Filter and bound records, preserving search ordering. A passing attempt is
+/// never used as the representative of a failed approach.
+pub fn rank_applicable(records: &[MemoryRecord], ctx: &RepoContext, limit: usize) -> Vec<Advisory> {
+    let mut selection = AdvisorySelection::new(limit);
+    for record in records {
+        selection.consider(record, ctx);
+    }
+    for record in records {
+        selection.observe_conflict(record, ctx);
+    }
+    selection.finish()
 }
 
 fn quote_untrusted(summary: &str) -> String {

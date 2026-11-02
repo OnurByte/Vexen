@@ -230,7 +230,14 @@ fn record_then_check_surfaces_the_attempt_and_outcome_is_idempotent() {
     assert_eq!(again["items"][0]["event_id"], id.as_str());
 
     let (ok, _, err) = run(
-        &["outcome", &id, "--test-id", "retry::duplicates", "--exit-code", "1"],
+        &[
+            "outcome",
+            &id,
+            "--test-id",
+            "retry::duplicates",
+            "--exit-code",
+            "1",
+        ],
         &root,
     );
     assert!(ok, "{err}");
@@ -279,7 +286,10 @@ fn record_can_store_an_accepted_decision() {
 fn observe_runs_the_typed_command_and_stores_only_exit_code_and_hash() {
     let (_dir, root) = repository();
     vexen(&["init"], &root);
-    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "flaky retry"], &root);
+    let (_, rec, _) = run(
+        &["record", "--path", "main.rs", "--summary", "flaky retry"],
+        &root,
+    );
     let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
         .as_str()
         .unwrap()
@@ -296,7 +306,10 @@ fn observe_runs_the_typed_command_and_stores_only_exit_code_and_hash() {
     let json = serde_json::to_string(&events[1]).unwrap();
     assert!(json.contains("\"exit_code\":0"), "{json}");
     assert!(json.contains("output_sha256"), "{json}");
-    assert!(!json.contains("git version"), "raw output must not be stored: {json}");
+    assert!(
+        !json.contains("git version"),
+        "raw output must not be stored: {json}"
+    );
 }
 
 #[test]
@@ -304,7 +317,16 @@ fn record_refuses_a_non_utf8_anchor_that_contains_a_secret() {
     let (_dir, root) = repository();
     vexen(&["init"], &root);
     std::fs::write(root.join("blob.dat"), b"\xffAPI_KEY=abc\n").unwrap();
-    let (ok, _, _) = run(&["record", "--path", "blob.dat", "--summary", "binary-ish file"], &root);
+    let (ok, _, _) = run(
+        &[
+            "record",
+            "--path",
+            "blob.dat",
+            "--summary",
+            "binary-ish file",
+        ],
+        &root,
+    );
     assert!(!ok, "a secret in a non-UTF-8 file must not be recorded");
 }
 
@@ -314,7 +336,10 @@ fn record_refuses_an_oversized_anchor_without_reading_it_all() {
     vexen(&["init"], &root);
     let f = std::fs::File::create(root.join("big.bin")).unwrap();
     f.set_len(20 * 1024 * 1024).unwrap();
-    let (ok, _, err) = run(&["record", "--path", "big.bin", "--summary", "too large"], &root);
+    let (ok, _, err) = run(
+        &["record", "--path", "big.bin", "--summary", "too large"],
+        &root,
+    );
     assert!(!ok);
     assert!(err.contains("too large"), "{err}");
 }
@@ -329,7 +354,11 @@ fn import_with_a_dangling_parent_writes_nothing() {
     );
     let outcome = r#"{"id":"b","parent_id":"missing","idempotency_key":"outcome:missing:o1","sequence":2,"kind":"outcome","payload":{"type":"outcome","data":{"idempotency_key":"o1","test_id":"t","exit_code":1,"output_sha256":null}},"previous_hash":"x","hash":"y"}"#;
     let file = root.join("dangling.jsonl");
-    std::fs::write(&file, format!("{{\"vexen_export\":1}}\n{record}\n{outcome}\n")).unwrap();
+    std::fs::write(
+        &file,
+        format!("{{\"vexen_export\":1}}\n{record}\n{outcome}\n"),
+    )
+    .unwrap();
     let o = Command::new(env!("CARGO_BIN_EXE_vexen"))
         .args(["import"])
         .arg(&file)
@@ -338,7 +367,11 @@ fn import_with_a_dangling_parent_writes_nothing() {
         .output()
         .unwrap();
     assert!(!o.status.success());
-    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 0, "nothing may be written");
+    assert_eq!(
+        Store::open(&root).unwrap().events().unwrap().len(),
+        0,
+        "nothing may be written"
+    );
 }
 
 #[cfg(windows)]
@@ -348,7 +381,10 @@ fn record_refuses_hidden_paths_written_with_backslashes() {
     vexen(&["init"], &root);
     std::fs::create_dir_all(root.join("config")).unwrap();
     std::fs::write(root.join("config").join(".env"), "A=1\n").unwrap();
-    let (ok, _, _) = run(&["record", "--path", r"config\.env", "--summary", "hidden"], &root);
+    let (ok, _, _) = run(
+        &["record", "--path", r"config\.env", "--summary", "hidden"],
+        &root,
+    );
     assert!(!ok);
 }
 
@@ -356,12 +392,18 @@ fn record_refuses_hidden_paths_written_with_backslashes() {
 fn item_status_uses_the_same_snake_case_names_as_the_envelope() {
     let (_dir, root) = repository();
     vexen(&["init"], &root);
-    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "retry loop"], &root);
+    let (_, rec, _) = run(
+        &["record", "--path", "main.rs", "--summary", "retry loop"],
+        &root,
+    );
     let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
         .as_str()
         .unwrap()
         .to_owned();
-    run(&["outcome", &id, "--test-id", "t", "--exit-code", "1"], &root);
+    run(
+        &["outcome", &id, "--test-id", "t", "--exit-code", "1"],
+        &root,
+    );
     let (_, check, _) = run(&["check", "--path", "main.rs"], &root);
     let v: serde_json::Value = serde_json::from_str(&check).unwrap();
     assert_eq!(v["status"], "observed_failure");
@@ -370,7 +412,11 @@ fn item_status_uses_the_same_snake_case_names_as_the_envelope() {
 
 fn import_file(root: &Path, name: &str, lines: &[String]) -> Output {
     let file = root.join(name);
-    std::fs::write(&file, format!("{{\"vexen_export\":1}}\n{}\n", lines.join("\n"))).unwrap();
+    std::fs::write(
+        &file,
+        format!("{{\"vexen_export\":1}}\n{}\n", lines.join("\n")),
+    )
+    .unwrap();
     Command::new(env!("CARGO_BIN_EXE_vexen"))
         .args(["import"])
         .arg(&file)
@@ -394,10 +440,17 @@ fn import_rejects_conflicting_duplicate_keys_without_writes() {
     let o = import_file(
         &root,
         "dup.jsonl",
-        &[record_line("a", "k1", "first", 1), record_line("b", "k1", "different", 2)],
+        &[
+            record_line("a", "k1", "first", 1),
+            record_line("b", "k1", "different", 2),
+        ],
     );
     assert!(!o.status.success());
-    assert_eq!(Store::open(&root).unwrap().events().unwrap().len(), 0, "nothing may be written");
+    assert_eq!(
+        Store::open(&root).unwrap().events().unwrap().len(),
+        0,
+        "nothing may be written"
+    );
 }
 
 #[test]
@@ -408,7 +461,10 @@ fn import_rejects_a_key_that_conflicts_with_an_existing_record() {
     let o = import_file(
         &root,
         "clash.jsonl",
-        &[record_line("a", "fresh", "new one", 1), record_line("b", "k1", "conflicting summary", 2)],
+        &[
+            record_line("a", "fresh", "new one", 1),
+            record_line("b", "k1", "conflicting summary", 2),
+        ],
     );
     assert!(!o.status.success());
     assert_eq!(
@@ -429,12 +485,24 @@ fn check_diff_returns_only_notes_for_changed_files() {
     vexen(&["init"], &root);
     std::fs::write(root.join("a.rs"), "fn a() { /* changed */ }\n").unwrap();
     for f in ["a.rs", "b.rs"] {
-        let (_, rec, _) = run(&["record", "--path", f, "--summary", &format!("failure in {f}")], &root);
+        let (_, rec, _) = run(
+            &[
+                "record",
+                "--path",
+                f,
+                "--summary",
+                &format!("failure in {f}"),
+            ],
+            &root,
+        );
         let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
             .as_str()
             .unwrap()
             .to_owned();
-        run(&["outcome", &id, "--test-id", "t", "--exit-code", "1"], &root);
+        run(
+            &["outcome", &id, "--test-id", "t", "--exit-code", "1"],
+            &root,
+        );
     }
     let (ok, out, err) = run(&["check", "--diff", "HEAD"], &root);
     assert!(ok, "{err}");
@@ -451,7 +519,10 @@ fn check_diff_returns_only_notes_for_changed_files() {
 fn observe_records_signal_termination_as_minus_one() {
     let (_dir, root) = repository();
     vexen(&["init"], &root);
-    let (_, rec, _) = run(&["record", "--path", "main.rs", "--summary", "killed test"], &root);
+    let (_, rec, _) = run(
+        &["record", "--path", "main.rs", "--summary", "killed test"],
+        &root,
+    );
     let id = serde_json::from_str::<serde_json::Value>(&rec).unwrap()["items"][0]["event_id"]
         .as_str()
         .unwrap()
@@ -475,5 +546,141 @@ fn init_refuses_a_symlinked_vexen_directory_and_writes_nothing_outside() {
     std::os::unix::fs::symlink(outside.path(), root.join(".vexen")).unwrap();
     let o = vexen(&["init"], &root);
     assert!(!o.status.success());
-    assert_eq!(std::fs::read_dir(outside.path()).unwrap().count(), 0, "nothing may be written through the link");
+    assert_eq!(
+        std::fs::read_dir(outside.path()).unwrap().count(),
+        0,
+        "nothing may be written through the link"
+    );
+}
+
+fn seeded_record(
+    store: &Store,
+    root: &Path,
+    key: &str,
+    path: &str,
+    kind: EventKind,
+) -> vexen::store::EventId {
+    use sha2::{Digest, Sha256};
+    let head = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .unwrap();
+    store
+        .append(NewEvent {
+            idempotency_key: key.into(),
+            kind,
+            summary: format!("Saved lesson {key}"),
+            anchor_path: path.into(),
+            anchor_sha256: format!(
+                "{:x}",
+                Sha256::digest(std::fs::read(root.join(path)).unwrap())
+            ),
+            git_commit: Some(String::from_utf8(head.stdout).unwrap().trim().into()),
+            conditions: vec![],
+        })
+        .unwrap()
+}
+
+#[test]
+fn check_finds_a_valid_lesson_behind_more_than_one_hundred_unrelated_records() {
+    let (_dir, root) = repository();
+    Store::initialize(&root).unwrap();
+    std::fs::write(root.join("other.rs"), "// unrelated\n").unwrap();
+    let store = Store::open(&root).unwrap();
+    seeded_record(
+        &store,
+        &root,
+        "older-relevant",
+        "main.rs",
+        EventKind::AcceptedDecision,
+    );
+    for i in 0..105 {
+        seeded_record(
+            &store,
+            &root,
+            &format!("unrelated-{i}"),
+            "other.rs",
+            EventKind::AcceptedDecision,
+        );
+    }
+    let output = vexen(&["check", "--path", "main.rs"], &root);
+    assert!(output.status.success());
+    let result: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+    assert_eq!(result["status"], "accepted_decision", "{result}");
+    assert!(
+        result["items"][0]["text"]
+            .as_str()
+            .unwrap()
+            .contains("older-relevant")
+    );
+}
+
+#[test]
+fn check_does_not_hide_a_conflicting_outcome_behind_the_candidate_limit() {
+    let (_dir, root) = repository();
+    Store::initialize(&root).unwrap();
+    std::fs::write(root.join("other.rs"), "// unrelated\n").unwrap();
+    let store = Store::open(&root).unwrap();
+    let success = seeded_record(
+        &store,
+        &root,
+        "older-success",
+        "main.rs",
+        EventKind::Attempt,
+    );
+    store
+        .outcome(
+            success,
+            NewOutcome {
+                idempotency_key: "older-success-outcome".into(),
+                test_id: "check".into(),
+                exit_code: 0,
+                output_sha256: None,
+            },
+        )
+        .unwrap();
+    for i in 0..105 {
+        seeded_record(
+            &store,
+            &root,
+            &format!("unrelated-{i}"),
+            "other.rs",
+            EventKind::AcceptedDecision,
+        );
+    }
+    let failure = seeded_record(
+        &store,
+        &root,
+        "recent-failure",
+        "main.rs",
+        EventKind::Attempt,
+    );
+    store
+        .outcome(
+            failure,
+            NewOutcome {
+                idempotency_key: "recent-failure-outcome".into(),
+                test_id: "check".into(),
+                exit_code: 1,
+                output_sha256: None,
+            },
+        )
+        .unwrap();
+    for args in [
+        vec!["check", "--path", "main.rs"],
+        vec!["check", "--path", "main.rs", "--query", "recent-failure"],
+    ] {
+        let output = vexen(&args, &root);
+        assert!(output.status.success());
+        let result: serde_json::Value = serde_json::from_str(&stdout(&output)).unwrap();
+        assert_eq!(result["items"][0]["status"], "conflicted", "{result}");
+        assert!(
+            result["items"][0]["text"]
+                .as_str()
+                .unwrap()
+                .contains("recent-failure")
+        );
+    }
 }

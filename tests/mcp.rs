@@ -236,7 +236,10 @@ async fn legacy_initialize_lifecycle_rejects_non_absolute_root_truthfully() {
 #[tokio::test]
 async fn accepts_an_ordinary_windows_path_for_repo_root() {
     let (_repo, root) = repository();
-    let plain = root.strip_prefix(r"\\?\").expect("verbatim root").to_owned();
+    let plain = root
+        .strip_prefix(r"\\?\")
+        .expect("verbatim root")
+        .to_owned();
     let (mut client, task) = start().await;
     client.send(message(r#"{"jsonrpc":"2.0","id":1,"method":"server/discover","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientInfo":{"name":"vexen-test","version":"1"},"io.modelcontextprotocol/clientCapabilities":{}}}}"#)).await.unwrap();
     let _ = receive(&mut client).await;
@@ -244,7 +247,10 @@ async fn accepts_an_ordinary_windows_path_for_repo_root() {
         panic!("expected check response")
     };
     assert_ne!(result.is_error, Some(true), "{:?}", result.content);
-    assert_eq!(result.structured_content.unwrap()["status"], "no_relevant_evidence");
+    assert_eq!(
+        result.structured_content.unwrap()["status"],
+        "no_relevant_evidence"
+    );
     drop(client);
     let _ = task.await;
 }
@@ -262,7 +268,89 @@ async fn tool_schemas_use_only_portable_integer_formats() {
         panic!("expected tools/list")
     };
     let json = serde_json::to_string(&list.tools).unwrap();
-    assert!(!json.contains("\"uint"), "unsigned formats in schemas: {json}");
+    assert!(
+        !json.contains("\"uint"),
+        "unsigned formats in schemas: {json}"
+    );
     drop(client);
     let _ = task.await;
+}
+
+/// A client may expose only `content` to its model, so the lesson must survive
+/// the actual check -> response path, including eligibility and stale filtering.
+#[tokio::test]
+async fn text_only_check_clients_can_read_a_lesson_until_its_anchor_changes() {
+    use rmcp::handler::server::wrapper::Parameters;
+    use sha2::{Digest, Sha256};
+    use vexen::{
+        mcp::CheckInput,
+        store::{EventKind, NewEvent, NewOutcome},
+    };
+
+    let (_repo, root) = repository();
+    let path = Path::new(&root).join("main.rs");
+    let hash = format!("{:x}", Sha256::digest(std::fs::read(&path).unwrap()));
+    let commit = Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .unwrap();
+    let store = Store::open(Path::new(&root)).unwrap();
+    let id = store
+        .append(NewEvent {
+            idempotency_key: "text-only-lesson".into(),
+            kind: EventKind::Attempt,
+            summary: "Default rounding failed: 0.125 must round to 0.13 with ROUND_HALF_UP.".into(),
+            anchor_path: "main.rs".into(),
+            anchor_sha256: hash,
+            git_commit: Some(String::from_utf8(commit.stdout).unwrap().trim().into()),
+            conditions: vec![],
+        })
+        .unwrap();
+    store
+        .outcome(
+            id,
+            NewOutcome {
+                idempotency_key: "text-only-outcome".into(),
+                test_id: "rounding".into(),
+                exit_code: 1,
+                output_sha256: None,
+            },
+        )
+        .unwrap();
+    let server = VexenServer::new();
+    let input = || {
+        Parameters(CheckInput {
+            repo_root: root.clone(),
+            paths: Some(vec!["main.rs".into()]),
+            diff_ref: None,
+            query: None,
+            conditions: None,
+        })
+    };
+    let result = server.check(input()).await;
+    assert_ne!(result.is_error, Some(true));
+    let text = serde_json::to_string(&result.content).unwrap();
+    assert!(
+        text.contains("ROUND_HALF_UP"),
+        "lesson missing from text: {text}"
+    );
+    assert!(text.contains("not a guarantee"));
+    assert_eq!(
+        result.structured_content.unwrap()["status"],
+        "observed_failure"
+    );
+
+    std::fs::write(&path, "fn main() { /* changed */ }\n").unwrap();
+    let stale = server.check(input()).await;
+    assert_eq!(
+        stale.structured_content.unwrap()["status"],
+        "no_relevant_evidence"
+    );
+    assert!(
+        !serde_json::to_string(&stale.content)
+            .unwrap()
+            .contains("ROUND_HALF_UP")
+    );
 }

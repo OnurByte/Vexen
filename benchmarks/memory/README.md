@@ -31,3 +31,17 @@ Toy tasks written by the people who wrote the tool, one agent, one model, one pl
 ## Results
 
 See [`docs/pilot-results.md`](../../docs/pilot-results.md).
+
+
+## Diagnosing incomplete results
+
+The [reliability investigation](../../docs/memory-reliability-investigation.md) records confirmed issues, completed fixes and remaining experiments. The current runner preserves correlated check traces and distinguishes invalid agent runs from scored task failures. It refuses to overwrite prior results. Use a new output directory for each experiment; `--keep-work` retains task repositories for diagnosis. Trace files may contain local paths and agent output; review them before publishing.
+
+After building Vexen, verify seeded memory and text-only MCP delivery without a model:
+
+```sh
+python benchmarks/memory/verify_delivery.py --vexen target/debug/vexen
+python -m unittest discover -s benchmarks/memory -p 'test_*.py'
+```
+
+These checks verify the memory path and measurement code, not coding-task success. Real-agent runs still require an authenticated Claude Code session. The runner uses the Python interpreter running it for test execution on the current platform.
