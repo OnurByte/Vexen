@@ -1,40 +1,53 @@
-# Installation and usage
+# Get started
 
-### Download the binary
+This page takes you from nothing to a saved and retrieved lesson. You need Git and one of: Node.js 18 or newer (easiest), or a prebuilt binary, or a Rust toolchain.
 
-1. [Download Vexen](https://github.com/OnurByte/Vexen/releases/latest) for your operating system. Choose Apple Silicon or Intel on macOS; most Windows and Linux computers use x64.
-2. Extract the ZIP or tar.gz archive. On macOS and Linux, make the binary executable if needed: `chmod +x vexen`.
-3. Put the binary in a folder on your PATH. On macOS and Linux, a common choice is `~/.local/bin` (the folder must already be on your PATH). On Windows, put `vexen.exe` in a permanent folder and add that folder to your user Path in **Environment Variables**, then reopen your terminal.
-4. Inside your Git project, run `vexen init`, then `vexen install --scope global`. Restart your coding agent.
+## 1. Run it (pick one)
 
-The binary needs Git, but does not need Node.js or Rust. Client-specific scopes and setup details are below.
+### With `npx`: no install, no Rust
 
-### 1. Run it (pick one)
+Open a terminal **inside the Git project you want Vexen to remember**. The first run downloads the checksummed binary for your platform, verifies it and caches it; after that it starts instantly.
 
-**With `npx`: no install, no Rust** (needs Node 18 or newer). The first run downloads the checksummed binary for your platform, verifies it and caches it; after that it starts instantly.
+macOS / Linux:
 
 ```sh
-cd my-repo
 npx @onurbyte/vexen init
 npx @onurbyte/vexen doctor
 npx @onurbyte/vexen check --diff HEAD
 ```
 
-**Prebuilt binary:** download the archive for Windows, Linux (x64, arm64) or macOS (x64, arm64) from the [Releases page](https://github.com/OnurByte/Vexen/releases) (each has a SHA-256 file) and put `vexen` on your `PATH`.
+Windows PowerShell (use `npx.cmd` so PowerShell's script policy does not block the launcher):
 
-**From source** (Rust 2024 and Git):
+```powershell
+npx.cmd @onurbyte/vexen init
+npx.cmd @onurbyte/vexen doctor
+npx.cmd @onurbyte/vexen check --diff HEAD
+```
+
+### With a prebuilt binary: no Node.js, no Rust
+
+1. [Download Vexen](https://github.com/OnurByte/Vexen/releases/latest) for your operating system. Choose Apple Silicon or Intel on macOS; most Windows and Linux computers use x64. Each archive has a `.sha256` file next to it.
+2. Extract the ZIP or tar.gz archive. On macOS and Linux, make the binary executable if needed: `chmod +x vexen`.
+3. Put the binary in a folder on your `PATH`. On macOS and Linux a common choice is `~/.local/bin` (the folder must already be on your `PATH`). On Windows, put `vexen.exe` in a permanent folder and add that folder to your user Path in **Environment Variables**, then reopen your terminal.
+4. Inside your Git project run `vexen init`, `vexen doctor` and `vexen check --diff HEAD`.
+
+The binary needs Git, but not Node.js or Rust.
+
+### From source
+
+Needs Rust 2024 and Git:
 
 ```sh
 cargo install --git https://github.com/OnurByte/Vexen --locked
 ```
 
-The rest of this page writes `vexen`; with `npx`, read it as `npx @onurbyte/vexen`.
+The rest of this page writes `vexen`; with `npx`, read it as `npx @onurbyte/vexen` (`npx.cmd` in PowerShell).
 
 <p align="center"><img src="assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
 
-On a fresh repository the honest answer is "no relevant evidence", and that is what you see.
+On a fresh repository the honest answer is "no relevant evidence", and that is what you see. The store (a local `.vexen/` folder, with its database files ignored by Git) starts empty and grows as lessons are saved.
 
-### 2. Connect your agents
+## 2. Connect your agents
 
 `vexen install` adds the MCP entry to the config files of the agents it finds (Claude Code, Codex CLI, Cursor, Gemini CLI, Windsurf, Kiro, VS Code, OpenCode). Preview first, then apply; `vexen uninstall` removes only what it added.
 
@@ -47,34 +60,67 @@ vexen install --scope global
 npx @onurbyte/vexen install --scope global --npx
 ```
 
-It writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, and refuses (printing the snippet) when a file cannot be edited safely, for example JSON with comments or a symbolic link. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds.
+Read the output: some tools need a manual step, and **you need to restart your coding tool** afterwards. The installer writes only the `vexen` entry, keeps a one-time `.vexen-backup` of any file it edits, never changes auto-approval or permission settings, and refuses (printing the snippet to add by hand) when a file cannot be edited safely, for example JSON with comments or a symbolic link. Zed and Cline print a snippet only. Scopes differ: VS Code is project-only, Codex CLI and Windsurf are global-only, and `--agent auto` only picks clients whose config folder it finds.
 
-The file formats of the automated clients are covered by tests. Claude Code (2.1.309), OpenCode (2.2.5) and Codex CLI (0.166.0) have each been checked live once, on Windows: a real model called `vexen_check` through the server entry and got a recorded failure back. For Claude Code and OpenCode the entry came from the file `vexen install` wrote (for Claude Code also the `--npx` form); for Codex the same `mcp_servers.vexen` keys were passed with `-c`. Additional experimental Linux runtime checks, including Gemini CLI and VS Code, are listed in [the client report](client-smoke-tests.md); they do not prove every installer path.
+### Check that it works
 
-### 3. Use it
+Writing a config file is not the same as your agent using Vexen. Four separate things can be true:
 
-**From an agent over MCP.** `vexen mcp --stdio` serves four tools: `vexen_check` reads past evidence for a file, `vexen_record` saves a failed attempt or a decision, `vexen_outcome` attaches a test result, and `vexen_explain` shows where a note came from. To wire a client by hand:
+1. **Installed:** `vexen doctor` reports `integrity: ok`.
+2. **Connected:** your agent lists Vexen among its MCP tools after a restart.
+3. **Callable:** ask your agent, in its chat: *"Use Vexen to check this project's README.md for past failures or decisions."* On a new project the correct answer is "no relevant evidence".
+4. **Used on its own:** whether an agent checks Vexen without being asked depends on the agent. The optional [agent skill](#3-use-it) tells it to.
+
+Which tools have been tested, and how far, is in the [client checks](client-smoke-tests.md). The file formats of the automated clients are covered by tests; installer-written configuration was exercised live for Claude Code and OpenCode.
+
+## 3. Use it
+
+### Save your first lesson
+
+When a test fails during your work, ask your agent to save it, or do it yourself. A note needs a file and, to be shown later, a failing test result:
+
+```sh
+vexen record --path src/retry.rs --summary "Retrying after a timeout charged the customer twice"
+# prints an id, for example 3e7a...; run the failing test and attach its result:
+vexen observe <id> --test-id retry_no_double_charge -- cargo test retry_no_double_charge
+vexen check --path src/retry.rs
+```
+
+`vexen observe` runs the command you type and stores only its exit code and a hash of its output. The note now appears for `src/retry.rs` as long as that file is unchanged. Vexen only brings back attempts with a recorded **failing** test result, and decisions you have accepted (`vexen record --kind decision`). Edit the file and the old note stops appearing, by design.
+
+### From an agent over MCP
+
+`vexen mcp --stdio` serves four tools: `vexen_check` reads past evidence for a file, `vexen_record` saves a failed attempt or a decision, `vexen_outcome` attaches a test result, and `vexen_explain` shows where a note came from. To wire a client by hand:
 
 ```json
 { "command": "npx", "args": ["-y", "@onurbyte/vexen", "mcp", "--stdio"] }
 ```
 
-(or `{ "command": "vexen", "args": ["mcp", "--stdio"] }` with the binary on your `PATH`; on Windows start `npx` through `cmd /c`). Agents pass the repository root explicitly on every call, so one server never leaks memory between projects. Your data lives in `.vexen/` inside the repository, and the database files are ignored by Git. `vexen export` and `vexen import` move it as versioned JSONL.
+(or `{ "command": "vexen", "args": ["mcp", "--stdio"] }` with the binary on your `PATH`; on Windows start `npx` through `cmd /c`). Agents pass the repository root explicitly on every call, so one server never leaks memory between projects. Details: [MCP protocol](protocol.md).
 
-**As an agent skill.** [`skills/vexen/SKILL.md`](../skills/vexen/SKILL.md) teaches an agent when to run `vexen check` before an edit and `vexen record` after a failed attempt. It follows the Agent Skills format, so any compatible agent can install it from this repository (the skill does not install Vexen itself):
+### As an agent skill
+
+[`skills/vexen/SKILL.md`](../skills/vexen/SKILL.md) teaches an agent when to run `vexen check` before an edit and `vexen record` after a failed attempt. It follows the Agent Skills format, so any compatible agent can install it from this repository:
 
 ```sh
 npx skills add OnurByte/Vexen
 ```
 
-**Without MCP.** Agents (or you) save notes with `vexen record --path <file> --summary "<what happened>"` and attach a test result with `vexen outcome <id> --test-id <test> --exit-code <n>`. To run the test and attach it in one step, use `vexen observe <id> --test-id <test> -- <command>`; `<id>` is the id `vexen record` printed, and only the exit code and an output hash are stored.
+The skill does not install Vexen itself. It works with `vexen` on your `PATH` or, if you only use `npx`, through `npx @onurbyte/vexen`.
 
+### Moving data
 
-## Build from source
+`vexen export --format jsonl` and `vexen import` move a store as versioned JSONL; `--format markdown` prints a readable list. See [data formats](formats.md).
 
-```sh
-cargo install --git https://github.com/OnurByte/Vexen --locked
-cargo test
-```
+## Troubleshooting
 
-See [client test results](client-smoke-tests.md), [data formats](formats.md), [MCP protocol](protocol.md), and [privacy](security.md).
+- **"No relevant evidence" on a new project.** Expected. The store starts empty; save a lesson as above.
+- **A saved note does not appear.** The usual reasons: the file changed since the note was recorded; the note has no failing test result (a note by itself is not a verified failure, and a passing result keeps it quiet); the query's `--condition` values differ from the note's; or you are in a different repository.
+- **The agent cannot find Vexen.** Restart the coding tool; check the scope (`--scope global` or `project`) and that your tool is one the installer supports; re-run `vexen install --scope global --dry-run` to see what it would write; or use `--print-config` and add the snippet yourself.
+- **`vexen: command not found`** after downloading a binary: the folder is not on your `PATH`. Use `npx` instead, or fix the `PATH`.
+- **On Windows PowerShell, `npx` is blocked** by script policy: use `npx.cmd`.
+- **The installer refused a config file.** It will not rewrite JSON with comments, duplicate keys or a symbolic link, to avoid losing your settings. It prints the snippet; add it by hand.
+
+## See also
+
+[Status and roadmap](roadmap.md) · [Client checks](client-smoke-tests.md) · [MCP protocol](protocol.md) · [Data formats](formats.md) · [Security and privacy](security.md)

@@ -1,3 +1,5 @@
+> **Historical document, kept for provenance.** It records a plan, a milestone or a snapshot from earlier in the project and may no longer match the code. For the current state see the [status and roadmap](../roadmap.md).
+
 # Task 4 — MCP server
 
 ## RED / GREEN record

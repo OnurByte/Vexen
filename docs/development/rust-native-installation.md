@@ -1,3 +1,5 @@
+> **Proposal, not shipped.** The `setup` flow and plugin packages described here do not exist yet. Current setup: [getting started](../getting-started.md). Status: [roadmap](../roadmap.md).
+
 # Rust ile sade Vexen kurulumu: Ponytail yaklaşımının uyarlanması
 
 Tarih: 2 Kasım 2026. Durum: GitHub kaynak araştırması ve uygulanacak kurulum taslağı. Bu belgede önerilen `setup` akışı ve plugin paketleri henüz uygulanmış değildir. Kaynak kod, ürün kurulumu ve release akışı bu çalışma sırasında değiştirilmedi.

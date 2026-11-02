@@ -90,3 +90,10 @@ jobs:
           node "$work/bin/vexen.js" init --repo "$work/repo"
           node "$work/bin/vexen.js" doctor --repo "$work/repo" | tee "$work/doctor.txt"
           grep -q "integrity: ok" "$work/doctor.txt"
+
+  docs-links:
+    # Relative links and heading anchors in every tracked Markdown file.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check-docs-links.py

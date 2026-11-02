@@ -140,7 +140,7 @@ Claude Code authentication remained unavailable on the third consecutive goal tu
 
 ## GitHub research: architecture-compatible strengthening roadmap
 
-Research snapshot: 2026-11-02. The [detailed GitHub assessment](github-strengthening-opportunities.md) contains primary-source links, observed project maturity, integration costs and exclusions. These are proposed follow-up investments, not implemented features or approved dependencies. They do not replace the pending real-agent evaluation.
+Research snapshot: 2026-11-02. The [detailed GitHub assessment](development/github-strengthening-opportunities.md) contains primary-source links, observed project maturity, integration costs and exclusions. These are proposed follow-up investments, not implemented features or approved dependencies. They do not replace the pending real-agent evaluation.
 
 | Priority | Opportunity and source | Integration boundary | Acceptance evidence | Current decision |
 |---|---|---|---|---|
@@ -176,12 +176,12 @@ Stop or defer adoption when it adds a mandatory cloud/model service, an always-o
 
 ## README marketing research with the Oxocarbon constraint
 
-The [academic marketing and comprehension assessment](readme-marketing-academic-research.md) links six research sources to specific README recommendations. The Oxocarbon palette, existing logo and Geist typography are fixed. The assessment distinguishes published findings from Vexen-specific hypotheses, includes first-screen/card copy drafts, flags mobile text scaling, and proposes a formative user study. It does not change README assets or claim a measured conversion/comprehension improvement. Research claims remain separate from Vexen's internal coding pilot.
+The [academic marketing and comprehension assessment](development/readme-marketing-academic-research.md) links six research sources to specific README recommendations. The Oxocarbon palette, existing logo and Geist typography are fixed. The assessment distinguishes published findings from Vexen-specific hypotheses, includes first-screen/card copy drafts, flags mobile text scaling, and proposes a formative user study. It does not change README assets or claim a measured conversion/comprehension improvement. Research claims remain separate from Vexen's internal coding pilot.
 
 
 ## Native installation direction
 
-The [Rust-native installation assessment](rust-native-installation.md) applies Ponytail's integrated onboarding approach while retaining Rust-owned product/setup logic. It records the closest Rust setup example (`jujutsu-mcp`), mature native distribution candidates (`cargo-dist`, `cargo-binstall`), and exclusions for archived or unsuitable projects. Native delivery, agent integration, project initialization and actual client verification are distinct acceptance steps. No plugin/native bootstrap mechanism or new `setup` command is claimed to exist yet; Node/npx is an optional compatibility path rather than the proposed primary runtime.
+The [Rust-native installation assessment](development/rust-native-installation.md) applies Ponytail's integrated onboarding approach while retaining Rust-owned product/setup logic. It records the closest Rust setup example (`jujutsu-mcp`), mature native distribution candidates (`cargo-dist`, `cargo-binstall`), and exclusions for archived or unsuitable projects. Native delivery, agent integration, project initialization and actual client verification are distinct acceptance steps. No plugin/native bootstrap mechanism or new `setup` command is claimed to exist yet; Node/npx is an optional compatibility path rather than the proposed primary runtime.
 
 
-Native-installation research was expanded with pinned source snapshots for Rust update/replacement/locking mechanisms, integrity versus authenticity distinctions, and an explicit clean-machine/partial-failure test matrix. See [the canonical Rust installation assessment](rust-native-installation.md). This is documentation-only research; no updater, setup command or plugin bootstrap was implemented or validated as a shipped feature.
+Native-installation research was expanded with pinned source snapshots for Rust update/replacement/locking mechanisms, integrity versus authenticity distinctions, and an explicit clean-machine/partial-failure test matrix. See [the canonical Rust installation assessment](development/rust-native-installation.md). This is documentation-only research; no updater, setup command or plugin bootstrap was implemented or validated as a shipped feature.
