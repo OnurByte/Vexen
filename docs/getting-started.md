@@ -73,6 +73,19 @@ Writing a config file is not the same as your agent using Vexen. Four separate t
 
 Which tools have been tested, and how far, is in the [client checks](client-smoke-tests.md). The file formats of the automated clients are covered by tests; installer-written configuration was exercised live for Claude Code and OpenCode.
 
+### Next release: `vexen setup` and `vexen demo`
+
+Not in a published version yet (they are on the `implementation` branch). With the binary:
+
+```sh
+vexen setup              # in your Git project
+vexen setup --dry-run    # show the plan, write nothing
+vexen demo               # a throwaway synthetic repository, deleted afterwards
+vexen doctor --mcp       # start the server and list its tools
+```
+
+`setup` starts your project's memory, copies a binary that runs from a temporary cache to a permanent folder, adds the MCP entry for the agents it finds, installs the skill where a path is verified (Claude Code only so far), then starts the server once and checks that its four tools answer. It exits with code 2 when a step failed or an agent was not found, and it never claims that your agent loads the entry: restart the agent and ask the question in step 3 above. `vexen uninstall --skill` removes what `setup` wrote; project memory is never deleted.
+
 ## 3. Use it
 
 ### Save your first lesson
@@ -106,7 +119,7 @@ vexen check --path src/retry.rs
 npx skills add OnurByte/Vexen
 ```
 
-The skill does not install Vexen itself. It works with `vexen` on your `PATH` or, if you only use `npx`, through `npx @onurbyte/vexen`.
+The skill is MCP-first: it reads through `vexen_check` and `vexen_explain` when your agent has them, and saves through the `vexen` command. It does not install Vexen itself. It works with `vexen` on your `PATH` or, if you only use `npx`, through `npx @onurbyte/vexen`.
 
 ### Moving data
 

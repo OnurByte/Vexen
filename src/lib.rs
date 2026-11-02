@@ -4,4 +4,6 @@ pub mod git;
 pub mod install;
 pub mod mcp;
 pub mod privacy;
+pub mod skill;
 pub mod store;
+pub mod verify;

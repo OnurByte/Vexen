@@ -19,6 +19,9 @@ pub struct InstallArgs {
     /// Replace or remove a `vexen` entry that differs from what install writes.
     #[arg(long)]
     force: bool,
+    /// With `uninstall`: also remove the skill file written by `vexen setup` (only if you have not edited it).
+    #[arg(long)]
+    skill: bool,
     /// Binary clients should launch (a name on PATH or an absolute path).
     #[arg(long, default_value = "vexen", conflicts_with = "npx")]
     command: String,
@@ -33,7 +36,7 @@ pub struct InstallArgs {
 }
 
 #[derive(Clone, Copy, clap::ValueEnum)]
-enum ScopeArg {
+pub(super) enum ScopeArg {
     Global,
     Project,
 }
@@ -48,7 +51,7 @@ pub fn run_install(args: InstallArgs, remove: bool) -> ExitCode {
     }
 }
 
-fn home_dir(arg: &Option<PathBuf>) -> Result<PathBuf, String> {
+pub(super) fn home_dir(arg: &Option<PathBuf>) -> Result<PathBuf, String> {
     if let Some(home) = arg {
         return Ok(home.clone());
     }
@@ -86,8 +89,11 @@ fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
         println!("no supported client found under {}; pass --agent <id>", home.display());
         return Ok(ExitCode::SUCCESS);
     }
+    if args.skill && !remove {
+        return Err("--skill is for `vexen uninstall`; `vexen setup` installs the skill".into());
+    }
     let mut failed = false;
-    for adapter in chosen {
+    for adapter in chosen.clone() {
         if args.print_config {
             println!("# {} ({})\n{}", adapter.label, adapter.support, crate::install::snippet(adapter, &launch));
             continue;
@@ -120,6 +126,19 @@ fn go(args: InstallArgs, remove: bool) -> Result<ExitCode, String> {
                 if !remove {
                     println!("add this by hand:\n{snippet}");
                 }
+            }
+        }
+    }
+    if remove && args.skill {
+        for adapter in &chosen {
+            let Some(path) = crate::skill::target(adapter.id, scope, &home, &repo) else { continue };
+            match crate::skill::remove(&path, args.dry_run, args.force)? {
+                crate::skill::SkillOutcome::Removed(p) => println!("{}: {} skill {}", adapter.id, if args.dry_run { "would remove" } else { "removed" }, p.display()),
+                crate::skill::SkillOutcome::Foreign(p) => {
+                    failed = true;
+                    println!("{}: skill NOT removed ({}): you edited it, or it is not ours (use --force)", adapter.id, p.display());
+                }
+                crate::skill::SkillOutcome::Absent(_) | crate::skill::SkillOutcome::Unchanged(_) | crate::skill::SkillOutcome::Created(_) | crate::skill::SkillOutcome::Updated(_) => {}
             }
         }
     }

@@ -97,3 +97,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check-docs-links.py
+
+  mcp-inspector:
+    # An independent client (the official MCP Inspector, version pinned) drives the
+    # real server and checks empty, relevant, stale and conflicted answers in both
+    # response forms. Development check only: users never need Node for Vexen.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: python3 scripts/inspector_smoke.py --vexen target/debug/vexen --inspector 2.13.0

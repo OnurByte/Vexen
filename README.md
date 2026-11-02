@@ -74,6 +74,8 @@ Vexen only brings back failed attempts with a recorded failing test result, or d
 
 **Want reminders to check and save lessons?** Add the optional [agent skill](skills/vexen/SKILL.md). It works with the `vexen` command on your PATH or, if you only use `npx`, through `npx @onurbyte/vexen`; the setup above already connects the agent through MCP, the tool connection it uses to read and save notes. See [the setup guide](docs/getting-started.md#3-use-it).
 
+**Coming in the next release:** `vexen setup` does the steps above in one command (it also starts the server once and confirms it answers), and `vexen demo` shows the whole loop on a throwaway synthetic repository. Both are on the `implementation` branch and not in a published version yet; see [the setup guide](docs/getting-started.md#next-release-vexen-setup-and-vexen-demo).
+
 [Full setup guide →](docs/getting-started.md) · [Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
 
 ## Works across coding tools

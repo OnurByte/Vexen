@@ -340,3 +340,31 @@ fn npx_flag_works_for_toml_and_opencode_and_conflicts_with_command() {
     let both = run(&h, "install", &CURSOR, &["--npx", "--command", "x"]);
     assert!(!both.status.success(), "--npx and --command must conflict");
 }
+
+#[test]
+fn uninstall_removes_an_entry_written_with_an_absolute_binary_path() {
+    let (_d, h) = home();
+    let file = h.join(".cursor/mcp.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    fs::write(
+        &file,
+        r#"{"mcpServers":{"other":{"command":"x"},"vexen":{"command":"C:/Program Files/Vexen/vexen.exe","args":["mcp","--stdio"]}}}"#,
+    )
+    .unwrap();
+    let o = run(&h, "uninstall", &CURSOR, &[]);
+    assert!(o.status.success(), "{}", out(&o));
+    let v: serde_json::Value = serde_json::from_str(&read(&file)).unwrap();
+    assert!(v["mcpServers"].get("vexen").is_none());
+    assert_eq!(v["mcpServers"]["other"]["command"], "x");
+}
+
+#[test]
+fn uninstall_does_not_touch_a_look_alike_that_is_not_ours() {
+    let (_d, h) = home();
+    let file = h.join(".cursor/mcp.json");
+    fs::create_dir_all(file.parent().unwrap()).unwrap();
+    let text = r#"{"mcpServers":{"vexen":{"command":"/opt/other-tool","args":["serve"]}}}"#;
+    fs::write(&file, text).unwrap();
+    assert!(!run(&h, "uninstall", &CURSOR, &[]).status.success());
+    assert_eq!(read(&file), text);
+}

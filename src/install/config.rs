@@ -277,7 +277,8 @@ fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
     } else {
         container
     };
-    let changed = apply(servers.get(NAME), &wanted, req)?;
+    let owned = servers.get(NAME).is_some_and(json_entry_is_ours);
+    let changed = apply(servers.get(NAME), &wanted, owned, req)?;
     if !changed {
         return Ok((existing.unwrap_or_default().to_owned(), false));
     }
@@ -293,13 +294,37 @@ fn edit_json(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
     Ok((text, true))
 }
 
-/// Shared decision: is a write needed, and is it safe?
-fn apply<T: PartialEq<T>>(current: Option<&T>, wanted: &T, req: &Request) -> Result<bool, String> {
+/// Does an existing entry look like one Vexen wrote, even if the path or
+/// launcher differs (an absolute binary path, `npx`, `cmd /c npx`)? Only entries
+/// that start `vexen` or `@onurbyte/vexen` with `mcp --stdio` count.
+fn looks_ours(command: &str, args: &[String]) -> bool {
+    let stem = Path::new(command).file_stem().and_then(|s| s.to_str()).unwrap_or("");
+    let tail = args.len() >= 2 && args[args.len() - 2] == "mcp" && args[args.len() - 1] == "--stdio";
+    tail && (stem.eq_ignore_ascii_case("vexen") || args.iter().any(|a| a == "@onurbyte/vexen"))
+}
+
+fn json_entry_is_ours(entry: &Value) -> bool {
+    let strings = |v: &Value| -> Vec<String> {
+        v.as_array().map(|a| a.iter().filter_map(Value::as_str).map(str::to_owned).collect()).unwrap_or_default()
+    };
+    match entry.get("command") {
+        Some(Value::Array(_)) => {
+            let all = strings(&entry["command"]);
+            all.split_first().is_some_and(|(c, rest)| looks_ours(c, rest))
+        }
+        Some(Value::String(c)) => looks_ours(c, &strings(&entry["args"])),
+        _ => false,
+    }
+}
+
+/// Shared decision: is a write needed, and is it safe? `owned` means the
+/// existing entry has Vexen's shape, which is enough to remove it.
+fn apply<T: PartialEq<T>>(current: Option<&T>, wanted: &T, owned: bool, req: &Request) -> Result<bool, String> {
     match (current, req.remove) {
         (None, true) => Ok(false),
         (None, false) => Ok(true),
         (Some(c), true) => {
-            if c == wanted || req.force {
+            if c == wanted || owned || req.force {
                 Ok(true)
             } else {
                 Err("the `vexen` entry differs from what install writes, so it is not ours to remove (use --force)".into())
@@ -357,7 +382,15 @@ fn edit_toml(existing: Option<&str>, req: &Request) -> Result<(String, bool), St
         None => false,
     });
     // Shared policy over booleans: does the existing entry match what we write?
-    let changed = apply(current.as_ref(), &true, req)?;
+    let owned = servers.get(NAME).and_then(|i| i.as_table_like()).is_some_and(|t| {
+        let args: Vec<String> = t
+            .get("args")
+            .and_then(Item::as_array)
+            .map(|a| a.iter().filter_map(|v| v.as_str().map(str::to_owned)).collect())
+            .unwrap_or_default();
+        t.get("command").and_then(Item::as_str).is_some_and(|c| looks_ours(c, &args))
+    });
+    let changed = apply(current.as_ref(), &true, owned, req)?;
     if !changed {
         return Ok((original.to_owned(), false));
     }

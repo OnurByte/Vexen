@@ -1,8 +1,9 @@
 use super::RepoArg;
 use crate::store::{Store, StoreError};
-use std::process::ExitCode;
+use crate::{install::Launch, verify::probe_mcp};
+use std::{process::ExitCode, time::Duration};
 
-pub fn run(repo: &RepoArg) -> ExitCode {
+pub fn run(repo: &RepoArg, mcp: bool) -> ExitCode {
     let root = match repo.root() {
         Ok(root) => root,
         Err(error) => {
@@ -31,6 +32,26 @@ pub fn run(repo: &RepoArg) -> ExitCode {
         Err(error) => {
             println!("events: unreadable: {error}");
             return ExitCode::FAILURE;
+        }
+    }
+    if mcp {
+        let exe = match std::env::current_exe() {
+            Ok(exe) => exe,
+            Err(e) => {
+                println!("mcp: cannot find this binary: {e}");
+                return ExitCode::FAILURE;
+            }
+        };
+        match probe_mcp(&Launch::binary(&exe.to_string_lossy()), Some(&root), Duration::from_secs(20)) {
+            Ok(probe) => println!(
+                "mcp: ok ({} tools; a vexen_check call answered `{}`). This proves the server works, not that your agent is connected to it.",
+                probe.tools.len(),
+                probe.check_status.unwrap_or_default()
+            ),
+            Err(e) => {
+                println!("mcp: FAILED: {e}");
+                return ExitCode::FAILURE;
+            }
         }
     }
     ExitCode::SUCCESS

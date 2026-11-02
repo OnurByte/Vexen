@@ -2,12 +2,15 @@ mod check;
 mod doctor;
 mod export;
 mod import;
+mod demo;
 mod init;
 mod install;
 mod observe;
 mod record;
+mod setup;
 
 use clap::{Parser, Subcommand, ValueEnum};
+use install::{ScopeArg, home_dir};
 use std::{
     path::{Path, PathBuf},
     process::{Command, ExitCode},
@@ -58,8 +61,18 @@ enum Cmd {
         #[command(flatten)]
         repo: RepoArg,
     },
-    /// Report store health without changing anything.
-    Doctor(RepoArg),
+    /// Report store health without changing anything; `--mcp` also starts a real server and calls it.
+    Doctor {
+        /// Also start `vexen mcp --stdio` as an agent would, list its tools and make one check call.
+        #[arg(long)]
+        mcp: bool,
+        #[command(flatten)]
+        repo: RepoArg,
+    },
+    /// One guided setup: place the binary, start the project's memory, connect agents, install the skill, verify.
+    Setup(setup::SetupArgs),
+    /// Watch a lesson being saved and found in a throwaway synthetic repository; your project is not touched.
+    Demo(demo::DemoArgs),
     /// Write all events as versioned JSONL or readable Markdown to stdout.
     Export {
         #[arg(long, value_enum, default_value = "jsonl")]
@@ -144,6 +157,11 @@ pub struct RepoArg {
 }
 
 impl RepoArg {
+    /// True when `--repo` was given, so a missing repository is an error and not a skipped step.
+    pub fn is_explicit(&self) -> bool {
+        self.repo.is_some()
+    }
+
     pub fn root(&self) -> Result<PathBuf, Box<dyn std::error::Error>> {
         let start = match &self.repo {
             Some(path) => path.clone(),
@@ -187,7 +205,9 @@ pub fn main() -> ExitCode {
             conditions,
         } => check::run(&repo, diff, paths, query, conditions),
         Cmd::Explain { id, repo } => check::explain(&repo, id),
-        Cmd::Doctor(repo) => return doctor::run(&repo),
+        Cmd::Doctor { mcp, repo } => return doctor::run(&repo, mcp),
+        Cmd::Setup(args) => return setup::run_setup(args),
+        Cmd::Demo(args) => demo::run(args),
         Cmd::Observe { id, test_id, key, repo, command } => observe::run(&repo, id, test_id, key, command),
         Cmd::Install(args) => return install::run_install(args, false),
         Cmd::Uninstall(args) => return install::run_install(args, true),

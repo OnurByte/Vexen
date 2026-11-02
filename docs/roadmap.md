@@ -22,15 +22,23 @@ Where Vexen stands today, in one page. Anything not listed under *Shipped* is no
 - **File hints from Git history ("what changes together").** It lost to plain co-change counts on all ten evaluated repositories, so it is not shown by default. See [the evaluation](benchmarks.md).
 - **Code-fragment recall** and similar ideas stay off until a comparative evaluation supports them.
 
-## Blocked
+## Built on `implementation`, not yet in a published version
 
-- **A fresh real-agent evaluation after the memory-delivery fixes.** It needs an authenticated coding agent; the exact blocker and the fixes are recorded in the [reliability investigation](memory-reliability-investigation.md).
+Each item has tests that ran; none is advertised as released.
 
-## Proposed, not built
+- **`vexen setup`:** Rust-native, no Node.js or Python. Starts project memory, places a permanent binary, writes MCP entries, installs the skill, then starts the server and checks that four tools answer. Evidence: `tests/setup.rs` (12 tests, including a home path with a space and a non-ASCII letter, idempotence, dry run, an edited skill left alone, a config it cannot edit safely).
+- **`vexen demo`:** synthetic lesson in a throwaway repository, shows `observed_failure` before an edit and `no_relevant_evidence` after, deletes itself.
+- **`vexen doctor --mcp`:** a real stdio handshake. It proves the server works, not that an agent loads it.
+- **Skill activation:** the skill is MCP-first and records the command for the machine. Verified with a real agent for Claude Code only (one run, one model, Windows); other agents have no verified skill path and are not claimed.
+- **Memory lifecycle tests:** property-based (`tests/lifecycle.rs`): never a stale or superseded note, a failing result is not hidden, at most three items, intact chain, lossless idempotent export and import. A deliberately broken check was caught.
+- **MCP Inspector smoke:** `scripts/inspector_smoke.py` drives the server with the official Inspector (pinned 2.13.0) in CI; it checks the text block and the structured content in four situations. A development check, not a runtime dependency.
+- **README cards:** regenerated at 720 units wide with no text under 24 units so they stay readable on a phone; checked at 360 and 768 px in light and dark.
 
-- A guided `setup` command that detects agents, initializes the repository, connects MCP, activates the skill and verifies it: [proposal](development/rust-native-installation.md).
-- MCP Inspector and property-based tests as pinned development checks, only where they close a gap that current tests do not: [candidate list](development/github-strengthening-opportunities.md).
-- A safe, clearly synthetic demo repository for first use.
+## Evaluated and deferred
+
+- `cargo-nextest`, `add-mcp`, `cargo-dist`, `self_update`/`axoupdater`, tree-sitter: not adopted. Each would add a dependency or a second installer without closing a gap that current tests leave open. Revisit when a concrete need appears.
+- A verified skill path for agents other than Claude Code, and live checks of more clients: need those apps and accounts installed.
+- Project-key signing of releases: needs a repository secret only the maintainers can add.
 
 ## What 1.0 would need
 
