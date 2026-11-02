@@ -98,3 +98,11 @@ En güçlü ürün nişi: **hangi yaklaşımın, hangi kod durumunda, hangi test
 ## Ana araştırma kaydıyla ilişki
 
 Bu adayların öncelik, entegrasyon sınırı, kabul kanıtı ve mevcut karar durumları [ana güvenilirlik araştırmasının yol haritasına](memory-reliability-investigation.md#github-research-architecture-compatible-strengthening-roadmap) işlendi. Bu dosya kaynak araştırmasıdır; ana kayıt ise doğrulanan düzeltmelerle gelecekteki önerileri ayrı tutar. Hiçbir aday henüz uygulanmış veya kabul edilmiş bağımlılık sayılmamalıdır.
+
+
+## Güncel kurulum yönü: Rust öncelikli
+
+Sonraki [Rust-native kurulum değerlendirmesi](rust-native-installation.md), kurulumun iş mantığını Rust içinde birleştirmeyi esas alır. `add-mcp` istemci formatı referansı olarak kalır; Node tabanlı kurulum motoru önerilmez. `cargo-dist` dağıtımı, mevcut Rust kodu ise agent kaydı ve skill/proje başlangıcını üstlenebilir. Genç ve arşivlenmiş örneklerin durumları yeni belgede açıkça ayrılmıştır.
+
+
+Rust kurulum belgesinin [derin inceleme bölümüne](rust-native-installation.md#derin-inceleme-kurulumun-eksik-kalan-teknik-sınırları) ek kaynaklar işlendi: `self_update`, `self-replace`, `axoupdater`, cargo-binstall atomik dosya/kilit modülleri ve Rust `include_str!`. Bunlar birbirine eklenecek bir dependency listesi değildir. Kaynak commit'leri, güvenlik varsayımları, Windows/eşzamanlı setup sınırları ve kabul testleri aynı belgede tutulur.
