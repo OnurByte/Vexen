@@ -30,25 +30,13 @@ Vexen gives your AI coding agents a shared, local memory of what you’ve tried,
 
 ## Get started
 
-Choose your system. Download the app or use npx with [Node.js 18+](https://nodejs.org/).
+Choose your system to get started with npx. Requires [Node.js 18+](https://nodejs.org/).
 
-<table>
-<tr>
-<td><img src="docs/assets/icons/windows-11.svg" width="28" height="28" alt="" /> <strong>Windows</strong></td>
-<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-pc-windows-msvc.zip">Download ZIP</a></td>
-<td><a href="#install-windows">Use npx ↓</a></td>
-</tr>
-<tr>
-<td><img src="docs/assets/icons/macos.svg" width="28" height="28" alt="" /> <strong>macOS</strong></td>
-<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-apple-darwin.tar.gz">Apple Silicon</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-apple-darwin.tar.gz">Intel</a></td>
-<td><a href="#install-macos">Use npx ↓</a></td>
-</tr>
-<tr>
-<td><img src="docs/assets/icons/linux.svg" width="28" height="28" alt="" /> <strong>Linux</strong></td>
-<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-unknown-linux-gnu.tar.gz">Download x64</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-unknown-linux-gnu.tar.gz">ARM64</a></td>
-<td><a href="#install-linux">Use npx ↓</a></td>
-</tr>
-</table>
+<p>
+  <a href="#install-windows"><img src="docs/assets/icons/windows-11.svg" width="28" height="28" alt="" /> <strong>Windows · npx →</strong></a>&nbsp;&nbsp;&nbsp;
+  <a href="#install-macos"><img src="docs/assets/icons/macos.svg" width="28" height="28" alt="" /> <strong>macOS · npx →</strong></a>&nbsp;&nbsp;&nbsp;
+  <a href="#install-linux"><img src="docs/assets/icons/linux.svg" width="28" height="28" alt="" /> <strong>Linux · npx →</strong></a>
+</p>
 
 Run the commands for your system inside your Git project:
 
