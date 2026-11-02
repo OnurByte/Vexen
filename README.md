@@ -72,7 +72,7 @@ failing test result, so a future session can check what happened.
 
 Vexen only brings back failed attempts with a recorded failing test result, or decisions you've accepted. A note by itself is not a verified failure. If the file changes, an old note stops appearing.
 
-**Want reminders to check and save lessons?** Add the optional [agent skill](skills/vexen/SKILL.md). It currently requires the `vexen` command on your PATH; the `npx` setup above connects the agent through MCP, the tool connection it uses to read and save notes. See [binary installation and skill setup](docs/getting-started.md).
+**Want reminders to check and save lessons?** Add the optional [agent skill](skills/vexen/SKILL.md). It works with the `vexen` command on your PATH or, if you only use `npx`, through `npx @onurbyte/vexen`; the setup above already connects the agent through MCP, the tool connection it uses to read and save notes. See [the setup guide](docs/getting-started.md#3-use-it).
 
 [Full setup guide →](docs/getting-started.md) · [Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
 
@@ -92,7 +92,7 @@ In our controlled pilot, Claude Code using Haiku solved **11 of 20 targeted task
 
 This was a small internal study using five synthetic tasks, pre-recorded evidence and explicit instructions to check memory. It does **not** establish general coding improvement.
 
-[See the method, all 76 runs and limitations →](docs/pilot-results.md) · [Inspect the raw data →](benchmarks/memory/results/pilot-2.jsonl)
+[See the method, the full 76-run pilot (this comparison uses 40 of its runs) and limitations →](docs/pilot-results.md) · [Inspect the raw data →](benchmarks/memory/results/pilot-2.jsonl)
 
 **Useful memory also needs to know when to stay quiet.** We checked what happened when a saved note was out of date or about a different file.
 
@@ -136,6 +136,6 @@ These examples show the kind of project-specific lesson Vexen can carry. They ar
 
 Vexen is in early development. It gives your agent context to consider; the agent still needs to inspect the current code and test its work.
 
-[Privacy](docs/security.md) · [Documentation](docs/getting-started.md) · [Compatibility](docs/client-smoke-tests.md) · [Roadmap](docs/specification.md) · [Report an issue](https://github.com/OnurByte/Vexen/issues)
+[Privacy](docs/security.md) · [Documentation](docs/README.md) · [Compatibility](docs/client-smoke-tests.md) · [Roadmap](docs/roadmap.md) · [Report an issue](https://github.com/OnurByte/Vexen/issues)
 
 GPL-3.0-or-later · [License](LICENSE). Independent; not affiliated with Vercel. [Geist fonts](https://github.com/vercel/geist-font) are used under the SIL Open Font License.

@@ -1,3 +1,5 @@
+> **A working brief written for an AI coding agent: instructions, not documentation.** Kept for transparency about how the cleanup was requested. Status of the work: [roadmap](../roadmap.md).
+
 # Vexen: product, reliability, documentation, and legacy-cleanup execution brief
 
 **Repository:** `OnurByte/Vexen`  

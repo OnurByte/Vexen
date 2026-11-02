@@ -13,7 +13,7 @@ Vexen keeps a small local record of what past attempts in this repository showed
 
 ## Before you start
 
-1. Run `vexen --version` (0.2.2 or newer, which fixes Windows paths for MCP; `observe` needs it, `record` and `outcome` need 0.1.1). If the command is missing or older, tell the user and point them to a prebuilt binary at https://github.com/OnurByte/Vexen/releases or `cargo install --git https://github.com/OnurByte/Vexen --locked`. Do not download or install it silently.
+1. Find a way to run Vexen. Run `vexen --version`; it should be 0.2.2 or newer (older versions mishandle Windows paths over MCP; `observe` needs 0.2.0, `record` and `outcome` need 0.1.1). If `vexen` is not on the PATH but Node.js 18 or newer is, use `npx @onurbyte/vexen` in place of `vexen` in every command below (the first call downloads and verifies the binary; later calls are fast). If neither works, tell the user and point them to https://github.com/OnurByte/Vexen/releases or `cargo install --git https://github.com/OnurByte/Vexen --locked`. Do not download or install anything silently.
 2. Run `vexen doctor`. If it says "not initialized", ask the user before running `vexen init` (it creates a `.vexen/` folder in the repository; its database files are git-ignored).
 
 ## Before editing

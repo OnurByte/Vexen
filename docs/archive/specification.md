@@ -1,3 +1,5 @@
+> **Historical specification and task backlog.** This was the original design and execution plan. Parts of it were built, parts were changed by evidence (for example, the Git co-change hints lost their gate and are off by default), and the first-run promises it makes are not the current behavior. For the current state see the [status and roadmap](../roadmap.md).
+
 Status: Design and execution plan, not an implemented product. This single document contains both the product specification and the implementation backlog. Planned commands, package names and performance targets are not claims about an existing release.
 For implementers: Complete the tasks in order, test before implementing each behavior, review each finished milestone, and do not add features outside the defined scope without evidence from evaluation.
 Goal: Build a fully free, open-source, local-first MCP tool that lets coding agents learn useful change relationships from Git history and reuse evidence-backed failed attempts across harnesses without flooding context or enforcing permissions.

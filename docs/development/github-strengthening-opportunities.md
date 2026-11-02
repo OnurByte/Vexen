@@ -1,3 +1,5 @@
+> **Research notes and proposals, not shipped.** None of the projects below is integrated. Written in Turkish. Status: [roadmap](../roadmap.md).
+
 # Vexen için GitHub araştırması: yapıya uygun güçlendirme alanları
 
 Araştırma tarihi: 2 Kasım 2026. Bu belge öneridir; aşağıdaki projeler kurulmadı veya Vexen'e entegre edilmedi. Önceki gerçek-agent değerlendirmesinin kimlik doğrulama engeli devam ediyor; bu araştırma o deneyin yerine geçmez.
@@ -97,7 +99,7 @@ En güçlü ürün nişi: **hangi yaklaşımın, hangi kod durumunda, hangi test
 
 ## Ana araştırma kaydıyla ilişki
 
-Bu adayların öncelik, entegrasyon sınırı, kabul kanıtı ve mevcut karar durumları [ana güvenilirlik araştırmasının yol haritasına](memory-reliability-investigation.md#github-research-architecture-compatible-strengthening-roadmap) işlendi. Bu dosya kaynak araştırmasıdır; ana kayıt ise doğrulanan düzeltmelerle gelecekteki önerileri ayrı tutar. Hiçbir aday henüz uygulanmış veya kabul edilmiş bağımlılık sayılmamalıdır.
+Bu adayların öncelik, entegrasyon sınırı, kabul kanıtı ve mevcut karar durumları [ana güvenilirlik araştırmasının yol haritasına](../memory-reliability-investigation.md#github-research-architecture-compatible-strengthening-roadmap) işlendi. Bu dosya kaynak araştırmasıdır; ana kayıt ise doğrulanan düzeltmelerle gelecekteki önerileri ayrı tutar. Hiçbir aday henüz uygulanmış veya kabul edilmiş bağımlılık sayılmamalıdır.
 
 
 ## Güncel kurulum yönü: Rust öncelikli

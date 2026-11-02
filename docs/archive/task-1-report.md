@@ -1,3 +1,5 @@
+> **Historical document, kept for provenance.** It records a plan, a milestone or a snapshot from earlier in the project and may no longer match the code. For the current state see the [status and roadmap](../roadmap.md).
+
 # Task 1 report: Git history and co-change
 
 **Status: DONE_WITH_CONCERNS.** The Task 1 implementation, fixture suite and frozen evaluation are complete. The predictive gate for default co-change hints failed: thresholded co-change had lower Hit@3 than plain historical co-change counts in all ten repositories. Keep co-change research-only with no default hints and make no release efficacy claim. Per the user's direction, continue the remaining product scope independently.
@@ -35,7 +37,7 @@ The twelve integration fixtures cover ordinary commits and evidence, rename chai
 
 ## Benchmark status and limitations
 
-The corrected evaluation used the ten frozen sources and revision `53f7b5af14f9c15bd15b0dd84845645585bde229`; portable aggregate and per-query outputs are under `benchmarks/cochange/results/`. Across 1,874 queries, thresholded co-change Hit@3 was 0.3511 versus 0.4274 for plain counts, and coverage was 0.7327 versus 0.9856. Thresholded emitted precision was higher (0.2438 vs 0.1624) and false-advisory rate lower (0.7562 vs 0.8376), but Hit@3 was lower in every repository, so the default-hint gate failed. See [the complete results](benchmarks.md).
+The corrected evaluation used the ten frozen sources and revision `53f7b5af14f9c15bd15b0dd84845645585bde229`; portable aggregate and per-query outputs are under `benchmarks/cochange/results/`. Across 1,874 queries, thresholded co-change Hit@3 was 0.3511 versus 0.4274 for plain counts, and coverage was 0.7327 versus 0.9856. Thresholded emitted precision was higher (0.2438 vs 0.1624) and false-advisory rate lower (0.7562 vs 0.8376), but Hit@3 was lower in every repository, so the default-hint gate failed. See [the complete results](../benchmarks.md).
 
 The runner initially failed because Git rejects `usize::MAX` as `--max-count`; the history limit is now bounded to Git's supported integer range. Corpus analysis encountered non-UTF-8 paths; the implementation skips/counts whole affected transactions rather than failing the run or dropping only the offending path.
 

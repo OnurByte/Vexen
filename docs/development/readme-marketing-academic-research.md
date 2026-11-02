@@ -1,3 +1,5 @@
+> **Research notes behind the README copy; not product documentation.** Written in Turkish. The current README is the source of truth for what Vexen says about itself.
+
 # Vexen README pazarlaması: akademik dayanak ve uygulama önerileri
 
 Araştırma tarihi: 2 Kasım 2026. Durum: kaynak incelemesi ve öneri; kullanıcı deneyi yapılmadı. README ve görsel dosyaları bu araştırma sırasında değiştirilmedi.

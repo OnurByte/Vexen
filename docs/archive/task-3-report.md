@@ -1,3 +1,5 @@
+> **Historical document, kept for provenance.** It records a plan, a milestone or a snapshot from earlier in the project and may no longer match the code. For the current state see the [status and roadmap](../roadmap.md).
+
 # Task 3 report: validity, ranking, and privacy
 
 **Status: implemented; focused security tests pass.** Advice is emitted only after local evidence is rechecked against the explicitly opened checkout, its current `HEAD`, the exact working file bytes, exact query path, and exact conditions vector. No record text is interpreted as an instruction.

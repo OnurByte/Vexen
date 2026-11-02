@@ -43,7 +43,7 @@ python benchmarks/clients/verify_results.py
 
 This audits recorded results; it does not launch clients again. It requires thirteen distinct new client IDs, matches requests to responses, checks four-tool discovery for the wire-backed runs, and validates the returned fixture record. A model's final sentence alone never counts as a passing wire-backed run.
 
-The diagnostic [model endpoint](../benchmarks/clients/mock_provider.py) and [stdio proxy](../benchmarks/clients/mcp_proxy.py) are snapshots of the scripts actually used. They retain this machine's fixture and binary paths and are not a portable CI runner. Local client installations and profiles are retained under `/home/borat/.local/share/vexen-client-tests/2026-11-01/`; the fixture remains at the recorded `/tmp/vexen-client-smoke-20261101/repo` path because its store identity is tied to its canonical checkout path.
+The diagnostic [model endpoint](../benchmarks/clients/mock_provider.py) and [stdio proxy](../benchmarks/clients/mcp_proxy.py) are snapshots of the scripts actually used. They retain the test machine's fixture and binary paths, so they are an audit record and not a portable CI runner. The local client installations and profiles stayed on the test machine. The fixture checkout stays at the path recorded in the [manifest](../benchmarks/clients/results/2026-11-01/manifest.json), because its store identity is tied to its canonical checkout path.
 
 ## Additional checks, excluded from the thirteen
 

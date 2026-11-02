@@ -1,6 +1,6 @@
 # Memory pilot: results
 
-Two runs of the paired memory-on/off pilot in [`benchmarks/memory`](../benchmarks/memory/README.md), both with real Claude Code sessions (Haiku, 14-turn limit, fresh copy of the same repository per run, order shuffled with a fixed seed).
+Two runs of the paired memory-on/off pilot (a small study on synthetic tasks; read the limits below before quoting a number) in [`benchmarks/memory`](../benchmarks/memory/README.md), both with real Claude Code sessions (Haiku, 14-turn limit, fresh copy of the same repository per run, order shuffled with a fixed seed).
 
 ## Run 2 (76 runs, 7 tasks, 4 repetitions per cell)
 
@@ -42,10 +42,13 @@ Per task:
 
 ### What it shows
 
-- **An applicable note changed the outcome.** On tasks with a hidden requirement the agent passed 2 of 20 times without memory and 11 of 20 with an applicable note; the intervals do not overlap.
-- **It is the note, not the extra sentence or the tool.** The `stale` runs carry the same sentence and the same server, every one of them called `vexen_check`, and it returned no evidence; they passed 0 of 20.
-- **No negative transfer here.** Where Vexen had nothing to say or nothing relevant (`stale`, and both controls), results did not get worse; the controls passed 8 of 8 either way. Vexen runs used about one to three more agent turns and, at Haiku prices, a fraction of a cent.
-- **Even with the note, 9 of 20 runs still failed.** The agent received the note and did not always apply it; this tool does not make a model follow evidence.
+- **The enabled condition did better on these tasks.** On the five tasks with a hidden requirement the agent passed 2 of 20 runs without memory and 11 of 20 with Vexen enabled and an applicable note on file; the intervals do not overlap.
+- **The note was not always delivered, and that mattered.** Every one of the 20 enabled runs called `vexen_check`, but the last call returned the note in 12 runs and `no_relevant_evidence` in 8, although an applicable note was recorded in all 20. The agent passed 11 of the 12 runs that received the note and none of the 8 that did not. So 11/20 is a result for the enabled condition, not for guaranteed delivery; the delivery defects found afterwards and their fixes are in the [reliability investigation](memory-reliability-investigation.md).
+- **Stale notes stayed quiet.** In all 20 `stale` runs the file had changed after the note was recorded and `vexen_check` returned no evidence, as designed. Those runs passed 0 of 20, against 2 of 20 without memory; with samples this small that difference is not interpretable, so it neither shows harm nor rules it out.
+- **The controls did not drop.** The two control tasks have a note about a different file only; all 8 enabled runs and all 8 memory-off runs passed. Vexen runs used about one to three more agent turns and, at Haiku prices, a fraction of a cent.
+- **One run received the note and still failed.** The agent does not always apply evidence it is given; this tool does not make a model follow it.
+
+A short, qualified version of these results is in the [research summary](research.md#memory-pilot).
 
 ### What it does not show
 
