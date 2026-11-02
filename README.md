@@ -30,37 +30,16 @@ Vexen gives your AI coding agents a shared, local memory of what you’ve tried,
 
 ## Get started
 
-Choose your system to get started with npx. Requires [Node.js 18+](https://nodejs.org/).
+Run these commands inside your Git project. Requires [Node.js 18+](https://nodejs.org/).
 
-<p>
-  <a href="#install-windows"><img src="docs/assets/icons/windows-11.svg" width="28" height="28" alt="" /> <strong>Windows · npx →</strong></a>&nbsp;&nbsp;&nbsp;
-  <a href="#install-macos"><img src="docs/assets/icons/macos.svg" width="28" height="28" alt="" /> <strong>macOS · npx →</strong></a>&nbsp;&nbsp;&nbsp;
-  <a href="#install-linux"><img src="docs/assets/icons/linux.svg" width="28" height="28" alt="" /> <strong>Linux · npx →</strong></a>
-</p>
-
-Run the commands for your system inside your Git project:
-
-<a name="install-windows"></a>
-
-### Windows · PowerShell
+<h3><img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="" /> Windows · PowerShell</h3>
 
 ```powershell
 npx.cmd @onurbyte/vexen init
 npx.cmd @onurbyte/vexen install --scope global --npx
 ```
 
-<a name="install-macos"></a>
-
-### macOS
-
-```sh
-npx @onurbyte/vexen init
-npx @onurbyte/vexen install --scope global --npx
-```
-
-<a name="install-linux"></a>
-
-### Linux
+<h3><img src="docs/assets/icons/macos.svg" width="24" height="24" alt="" /> <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="" /> macOS / Linux</h3>
 
 ```sh
 npx @onurbyte/vexen init
