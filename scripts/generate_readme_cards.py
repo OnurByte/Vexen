@@ -197,3 +197,29 @@ OPEN_TESTS = [
      ['File hints remain research-only. This study did not measure coding success.'])]
 save('readme-relevance.svg', 'Evidence beyond the headline', flat(RELEVANCE), research(RELEVANCE))
 save('readme-open-tests.svg', 'Evidence beyond the headline', flat(OPEN_TESTS), research(OPEN_TESTS))
+
+
+def clients(c):
+    import json
+    import re
+    labels = json.loads((root / 'docs/assets/icons/sources.json').read_text(encoding='utf-8'))['icons'][:18]
+    head(c, 'Your agents. One project memory.', 'Pick up where your last session left off.')
+    cols, gap, tile_h = 2, 12, 64
+    tile_w = (W - 2 * PAD - gap) // cols
+    top = round(c.y)
+    for i, item in enumerate(labels):
+        x = PAD + (i % cols) * (tile_w + gap)
+        y = top + (i // cols) * (tile_h + gap)
+        raw = (root / 'docs/assets/icons' / f"{item['id']}.svg").read_text(encoding='utf-8')
+        inner = re.sub(r'^<svg[^>]*>', '', raw.strip())[:-len('</svg>')]
+        inner = re.sub(r'<title>.*?</title>', '', inner)
+        c.parts.append(f'<rect x="{x}" y="{y}" width="{tile_w}" height="{tile_h}" rx="16" fill="{CARD}"/>')
+        c.parts.append(f'<svg x="{x + 8}" y="{y + 8}" width="48" height="48" viewBox="0 0 48 48">{inner}</svg>')
+        c.parts.append(text(item['label'], x + 72, y + 40, MIN, INK, 'bold'))
+    rows = (len(labels) + cols - 1) // cols
+    c.y = top + rows * (tile_h + gap) + 16
+    c.para('Setup and test coverage vary by client. See the compatibility guide.', MIN, SOFT)
+
+
+save('clients.svg', 'Your agents. One project memory.',
+     'Coding tools with Vexen setup or runtime test coverage, including Claude Code, Codex, Cursor, Gemini CLI and VS Code. Setup steps and test coverage differ by tool.', clients)

@@ -15,7 +15,7 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 - New evaluation rows `pilot-3` and `pilot-4-memory-on` (historical pilots untouched); see the research summary for caveats.
 - Skill rewritten MCP-first; setup records the command for the machine in it.
 - Tests: property-based lifecycle tests (`proptest`), setup/demo tests, and a CI job that drives the server with the pinned MCP Inspector (`scripts/inspector_smoke.py`).
-- README cards regenerated for phone widths (`scripts/generate_readme_cards.py`).
+- README cards, including the clients card, regenerated for phone widths (`scripts/generate_readme_cards.py`).
 
 - Documentation cleanup. New [`docs/README.md`](docs/README.md) index with four paths (start, reference, research, development and archive) and a one-page [status and roadmap](docs/roadmap.md) that replaces the old specification as the README's roadmap link. Historical documents (original specification, milestone reports, an old brand snapshot, the frozen co-change plan) moved to `docs/archive/` with a status banner and a record of what was removed; proposals and research notes moved to `docs/development/`. Six unreferenced early illustrations were deleted (still in Git history). The setup guide was reorganized (npx first, then binary, then source; a first-lesson walkthrough; troubleshooting).
 - Corrected claims: the pilot write-up no longer says every enabled run received a usable note or that negative transfer was ruled out (the last call returned the note in 12 of 20 enabled runs); the security page now reflects the 13 additional client checks; the agent skill works through `npx` as well as with `vexen` on the PATH; personal machine paths were removed from the client-checks page.
