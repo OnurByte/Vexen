@@ -1,95 +1,141 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="icon.svg">
-    <img src="icon-light.svg" width="84" height="78" alt="Vexen mark: two white and two blue paths converge into a forward-pointing V." />
+    <img src="icon-light.svg" width="84" height="78" alt="Vexen" />
   </picture>
 </p>
 
 <h1 align="center">Vexen</h1>
 
-<p align="center"><strong>Your agent forgets. Your project shouldn’t.</strong><br/>Keep the lessons from one coding session. Give the next one a head start.</p>
+<p align="center"><strong>Your AI agent forgot what failed. Vexen didn't.</strong></p>
+<p align="center">Stop losing lessons between coding sessions.<br/>Save failed fixes and important decisions so your next agent can check them before trying again.</p>
 
 <p align="center">
+  <img alt="Free and open source" src="https://img.shields.io/badge/free-open%20source-78a9ff?labelColor=262626" />
+  <img alt="Private and local" src="https://img.shields.io/badge/private-local-78a9ff?labelColor=262626" />
+  <img alt="No account required" src="https://img.shields.io/badge/account-not%20required-78a9ff?labelColor=262626" />
   <img alt="Status: early development" src="https://img.shields.io/badge/status-early%20development-78a9ff?labelColor=262626" />
-  <img alt="Local first" src="https://img.shields.io/badge/local--first-no%20cloud-78a9ff?labelColor=262626" />
-  <img alt="npm version" src="https://img.shields.io/npm/v/@onurbyte/vexen?color=78a9ff&labelColor=262626&label=npm" />
-  <img alt="Written in Rust" src="https://img.shields.io/badge/built%20with-Rust-78a9ff?labelColor=262626" />
-  <img alt="MCP server" src="https://img.shields.io/badge/speaks-MCP-78a9ff?labelColor=262626" />
-  <img alt="License GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-78a9ff?labelColor=262626" />
 </p>
 
-<p align="center"><a href="#get-started"><strong>Get Vexen →</strong></a></p>
+<p align="center"><a href="#get-started"><strong>Get started →</strong></a> · <a href="#does-it-help">See the evidence</a> · <a href="docs/getting-started.md">Setup help</a></p>
 
-<p align="center"><img src="docs/assets/hero.svg" alt="Vexen, local repository memory for coding agents: labeled flow from your repo to saved evidence to the next session." /></p>
+Vexen is a shared memory for AI coding tools such as **Claude Code, Codex and Cursor**. It keeps notes with your project, so switching tools or opening a new chat doesn't have to mean explaining the same failed fix again.
 
-Vexen gives your AI coding agents a shared, local memory of what you’ve tried, what failed, and why. Save a lesson once. Let your next agent check it before starting over.
+## Here's what changes
 
-**Free. Open source. No account required.**
+<p align="center"><img src="docs/assets/readme-before-after.svg" alt="Illustrative scenario. Without Vexen: Claude tries a fix on Monday, the test fails, and a fresh Codex chat on Friday may try it again. With Vexen: the failure and test result are saved, so Codex can check them and decide whether the lesson still applies." /></p>
 
-[Get started](#get-started) · [Supported agents](#works-with-your-coding-setup) · [Docs](#learn-more)
+**You don't need to save an entire conversation.** Your agent saves a short note about what failed, along with its test result, or a decision you've accepted. A later session can check those notes before editing the same code.
+
+*Illustrative scenario. Notes need to be recorded; Vexen does not automatically remember your chats.*
+
+<p align="center"><img src="docs/assets/readme-benefits.svg" alt="Keep the lesson: failed fixes and key decisions for the next session. See the proof: the file and test result behind a reminder. Keep it local: on your machine, with no account, cloud or telemetry." /></p>
 
 ## Get started
 
-Run these commands inside your Git project. Requires [Node.js 18+](https://nodejs.org/).
+Open a terminal **inside the Git project you want Vexen to remember**. You'll need [Node.js 18 or newer](https://nodejs.org/) and Git.
 
-<h3><img src="docs/assets/icons/windows-11.svg" width="24" height="24" alt="" /> Windows · PowerShell</h3>
+**1. Create your project's memory and connect your coding tools.**
 
-```powershell
-npx.cmd @onurbyte/vexen init
-npx.cmd @onurbyte/vexen install --scope global --npx
-```
-
-<h3><img src="docs/assets/icons/macos.svg" width="24" height="24" alt="" /> <img src="docs/assets/icons/linux.svg" width="24" height="24" alt="" /> macOS / Linux</h3>
+macOS / Linux:
 
 ```sh
 npx @onurbyte/vexen init
 npx @onurbyte/vexen install --scope global --npx
 ```
 
-Restart your coding agent. [Add the Vexen skill](docs/getting-started.md#3-use-it) so it knows when to save and check lessons.
+Windows PowerShell:
 
-<p align="center"><img src="docs/assets/terminal.svg" alt="Real terminal output from running vexen init, vexen doctor and vexen check on a fresh Git repository: the store is created, reports integrity ok with zero events, and check answers no relevant evidence." /></p>
+```powershell
+npx.cmd @onurbyte/vexen init
+npx.cmd @onurbyte/vexen install --scope global --npx
+```
 
-A new project starts with an empty memory. It grows as you and your agent record what you learn.
+The first command creates a local `.vexen/` folder. The second adds Vexen to supported coding tools it detects. Read the output: some tools need a manual step. **Restart your coding tool** after setup.
 
-[Setup help →](docs/getting-started.md)
+**2. Try it in your agent's chat.**
 
-## Stop starting from scratch
+```text
+Use Vexen to check this project's README.md for past failures or decisions.
+```
 
-<p align="center"><img src="docs/assets/problem.svg" alt="Illustrative and fictional: in session one an agent retries a charge after a timeout and a test fails with a double charge. A week later a new agent tries the same thing, because it has no memory of the first failure." /></p>
+On a new project, **“no relevant evidence” is the expected answer**. Your memory starts empty and grows as lessons are saved. If your agent can't find Vexen, follow the [connection guide](docs/getting-started.md#2-connect-your-agents).
 
-A new chat shouldn’t mean losing everything you learned in the last one. Keep failed attempts and important decisions with your project, ready for the next session.
+**3. Save a useful lesson when one happens.**
 
-## Save the lesson. Keep the proof.
+After a test fails during your work, ask your agent:
 
-<p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: record what failed, keep the proof, and recall it only when it fits current code. Vexen can stay quiet when evidence does not apply." /></p>
+```text
+Save this failed attempt in Vexen with the affected file and the actual
+failing test result, so a future session can check what happened.
+```
 
-Your agent records an attempt and its result. Vexen keeps the source and checks whether it still fits your code before bringing it back.
+Vexen only brings back failed attempts with a recorded failing test result, or decisions you've accepted. A note by itself is not a verified failure. If the file changes, an old note stops appearing.
 
-<p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
+**Want reminders to check and save lessons?** Add the optional [agent skill](skills/vexen/SKILL.md). It currently requires the `vexen` command on your PATH; the `npx` setup above connects the agent through MCP, the tool connection it uses to read and save notes. See [binary installation and skill setup](docs/getting-started.md).
 
-*Illustrative example. When nothing applies, Vexen stays quiet.*
+[Full setup guide →](docs/getting-started.md) · [Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
+
+## Works across coding tools
+
+Start a task in Claude Code. Continue in Codex or Cursor. **Saved lessons stay with the project.** Each tool needs to be connected to Vexen, and your agent needs to check for relevant notes.
+
+<p align="center"><img src="docs/assets/clients.svg" alt="Coding tools with Vexen setup or runtime test coverage, including Claude Code, Codex, Cursor, Gemini CLI and VS Code. Setup steps and test coverage differ by tool." /></p>
+
+The installer supports eight tools. Additional clients have been tested with real Vexen tool calls; setup and coverage vary. [Find your tool and see what was tested →](docs/client-smoke-tests.md)
+
+## Does it help?
+
+<p align="center"><img src="docs/assets/readme-evidence.svg" alt="Small internal coding pilot: 11 successful runs out of 20 with relevant Vexen memory, versus 2 out of 20 without memory. Five synthetic tasks, one model, pre-recorded evidence and explicit instructions to check memory. Not a general coding performance claim." /></p>
+
+In our controlled pilot, Claude Code using Haiku solved **11 of 20 targeted task runs with relevant Vexen memory**, compared with **2 of 20 without memory**.
+
+This was a small internal study using five synthetic tasks, pre-recorded evidence and explicit instructions to check memory. It does **not** establish general coding improvement.
+
+[See the method, all 76 runs and limitations →](docs/pilot-results.md) · [Inspect the raw data →](benchmarks/memory/results/pilot-2.jsonl)
+
+**Useful memory also needs to know when to stay quiet.** We checked what happened when a saved note was out of date or about a different file.
+
+<p align="center"><img src="docs/assets/readme-relevance.svg" alt="Relevance checks in the same pilot: all 20 stale-memory runs returned no relevant evidence. On two control tasks with unrelated notes, all eight runs passed with Vexen and all eight passed without it. These small synthetic checks do not establish general safety or performance." /></p>
+
+The stale-note check measured whether an old record was withheld; those runs solved 0 of 20 tasks. The control result means no drop was observed on those two tasks. Neither is a guarantee for other projects. [Read the relevance checks →](docs/research.md#relevance-checks)
+
+**Tested connections. Published misses.** We also test whether coding tools can actually retrieve a saved note, and publish experiments that did not earn a place in the default product.
+
+<p align="center"><img src="docs/assets/readme-open-tests.svg" alt="Compatibility study: 13 additional installed clients completed a Vexen read call on Linux, mostly using deterministic model drivers. Separate file-hint study: across 1,874 queries in ten repositories, the experimental method lost to simple history counts in every repository and remains research-only. Neither study measures coding improvement." /></p>
+
+[See the 13 client checks →](docs/client-smoke-tests.md) · [Read the unsuccessful file-hint experiment →](docs/benchmarks.md)
+
+<details>
+<summary><strong>What did the coding tasks actually test?</strong></summary>
+
+These were small Python tasks with requirements hidden from the visible tests. The saved notes described earlier failures involving those requirements. Each row below includes all four repetitions per condition, rather than a selected successful run.
+
+| Task | What the saved lesson explained | Without memory | Vexen enabled |
+|---|---|---:|---:|
+| Read an exported file | A special UTF-8 file marker needs to be handled | 1 / 4 | 3 / 4 |
+| Calculate a price | `0.125` must round to `0.13` | 1 / 4 | 2 / 4 |
+| Build a URL slug | `München` must become `muenchen` | 0 / 4 | 2 / 4 |
+| Parse an export date | `04/03/2025` means 4 March | 0 / 4 | 2 / 4 |
+| Read exported rows | Accept semicolons as well as commas | 0 / 4 | 2 / 4 |
+
+These examples show the kind of project-specific lesson Vexen can carry. They are synthetic test cases, not customer stories. The notes were prepared in advance and the agent was told to check memory. In the Vexen-enabled group, all 20 runs called the tool; the last logged response contained a failure record in 12 and no relevant evidence in eight. Even with Vexen enabled, nine runs failed.
+
+[Task definitions](benchmarks/memory/tasks.py) · [Additional tasks](benchmarks/memory/tasks_extra.py) · [Full results](docs/pilot-results.md)
+
+</details>
+
+[Explore the research, evidence and limits →](docs/research.md)
 
 ## Your project. Your memory.
 
-<p align="center"><img src="docs/assets/principles.svg" alt="Four design principles: local first with no account, cloud or telemetry; every reminder cites its source; no relevant evidence is a valid answer; one small Rust and SQLite binary with nothing running in the background." /></p>
+- **Local storage.** Notes live in your project's `.vexen/` folder. Database files are ignored by Git.
+- **No Vexen cloud or telemetry.** Vexen doesn't record your chats. Your coding tool's own data policies still apply.
+- **A source for each reminder.** Check the file, commit and recorded result behind a note.
+- **Nothing relevant? It says so.** Old or unrelated evidence should not become advice for new code.
 
-Everything stays on your machine. No cloud, no telemetry, no chat recording. You and your agent stay in control.
+Vexen is in early development. It gives your agent context to consider; the agent still needs to inspect the current code and test its work.
 
-## Works with your coding setup
-
-<p align="center"><img src="docs/assets/clients.svg" alt="Agent and IDE icons in Vexen blue: Claude Code, Codex, Cursor, Gemini CLI, VS Code, OpenCode, Windsurf, Kiro, GitHub Copilot, Cline, Zed, Hermes, Qwen Code, Continue, Goose, Kilo, Mistral Vibe and OpenHands. Setup and test coverage vary by client." /></p>
-
-[Find your agent’s setup →](docs/getting-started.md#2-connect-your-agents) · [Compatibility & test results](docs/client-smoke-tests.md)
-
-## Built, tested, still growing
-
-<p align="center"><img src="docs/assets/status.svg" alt="Working now: evidence store, MCP server, command line, installer for eight agents, test-result capture, npx launcher on npm, Git-history analysis for research. Next: live smoke tests with more clients, signed release binaries, Windows and macOS test fixtures. Later: paired agent evaluation, published negative results." /></p>
-
-An early release with real tool calls verified in 13 additional clients. [See the results and test limits →](docs/client-smoke-tests.md)
-
-## Learn more
-
-[Privacy](docs/security.md) · [Agent compatibility](docs/client-smoke-tests.md) · [Evaluation results](docs/pilot-results.md) · [Roadmap](docs/specification.md)
+[Privacy](docs/security.md) · [Documentation](docs/getting-started.md) · [Compatibility](docs/client-smoke-tests.md) · [Roadmap](docs/specification.md) · [Report an issue](https://github.com/OnurByte/Vexen/issues)
 
 GPL-3.0-or-later · [License](LICENSE). Independent; not affiliated with Vercel. [Geist fonts](https://github.com/vercel/geist-font) are used under the SIL Open Font License.
