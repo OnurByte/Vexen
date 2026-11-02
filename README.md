@@ -28,58 +28,25 @@ Vexen gives your AI coding agents a shared, local memory of what you’ve tried,
 
 [Get started](#get-started) · [Supported agents](#works-with-your-coding-setup) · [Docs](#learn-more)
 
-## Stop starting from scratch
-
-<p align="center"><img src="docs/assets/problem.svg" alt="Illustrative and fictional: in session one an agent retries a charge after a timeout and a test fails with a double charge. A week later a new agent tries the same thing, because it has no memory of the first failure." /></p>
-
-A new chat shouldn’t mean losing everything you learned in the last one. Keep failed attempts and important decisions with your project, ready for the next session.
-
-## Save the lesson. Keep the proof.
-
-<p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: record what failed, keep the proof, and recall it only when it fits current code. Vexen can stay quiet when evidence does not apply." /></p>
-
-Your agent records an attempt and its result. Vexen keeps the source and checks whether it still fits your code before bringing it back.
-
-<p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
-
-*Illustrative example. When nothing applies, Vexen stays quiet.*
-
-## Your project. Your memory.
-
-<p align="center"><img src="docs/assets/principles.svg" alt="Four design principles: local first with no account, cloud or telemetry; every reminder cites its source; no relevant evidence is a valid answer; one small Rust and SQLite binary with nothing running in the background." /></p>
-
-Everything stays on your machine. No cloud, no telemetry, no chat recording. You and your agent stay in control.
-
-## Works with your coding setup
-
-<p align="center"><img src="docs/assets/clients.svg" alt="Agent and IDE icons in Vexen blue: Claude Code, Codex, Cursor, Gemini CLI, VS Code, OpenCode, Windsurf, Kiro, GitHub Copilot, Cline, Zed, Hermes, Qwen Code, Continue, Goose, Kilo, Mistral Vibe and OpenHands. Setup and test coverage vary by client." /></p>
-
-[Find your agent’s setup →](docs/getting-started.md#2-connect-your-agents) · [Compatibility & test results](docs/client-smoke-tests.md)
-
 ## Get started
 
 Choose your system. Download the app or use npx with [Node.js 18+](https://nodejs.org/).
 
-<table width="100%">
+<table>
 <tr>
-<td width="33%" align="center" valign="top">
-<img src="docs/assets/icons/windows-11.svg" width="48" height="48" alt="Windows" /><br/>
-<strong>Windows</strong><br/><br/>
-<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-pc-windows-msvc.zip">Download ZIP</a><br/>
-<a href="#install-windows">Use npx ↓</a>
-</td>
-<td width="33%" align="center" valign="top">
-<img src="docs/assets/icons/macos.svg" width="48" height="48" alt="macOS" /><br/>
-<strong>macOS</strong><br/><br/>
-<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-apple-darwin.tar.gz">Apple Silicon</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-apple-darwin.tar.gz">Intel</a><br/>
-<a href="#install-macos">Use npx ↓</a>
-</td>
-<td width="33%" align="center" valign="top">
-<img src="docs/assets/icons/linux.svg" width="48" height="48" alt="Linux" /><br/>
-<strong>Linux</strong><br/><br/>
-<a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-unknown-linux-gnu.tar.gz">Download x64</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-unknown-linux-gnu.tar.gz">ARM64</a><br/>
-<a href="#install-linux">Use npx ↓</a>
-</td>
+<td><img src="docs/assets/icons/windows-11.svg" width="28" height="28" alt="" /> <strong>Windows</strong></td>
+<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-pc-windows-msvc.zip">Download ZIP</a></td>
+<td><a href="#install-windows">Use npx ↓</a></td>
+</tr>
+<tr>
+<td><img src="docs/assets/icons/macos.svg" width="28" height="28" alt="" /> <strong>macOS</strong></td>
+<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-apple-darwin.tar.gz">Apple Silicon</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-apple-darwin.tar.gz">Intel</a></td>
+<td><a href="#install-macos">Use npx ↓</a></td>
+</tr>
+<tr>
+<td><img src="docs/assets/icons/linux.svg" width="28" height="28" alt="" /> <strong>Linux</strong></td>
+<td><a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-x86_64-unknown-linux-gnu.tar.gz">Download x64</a> · <a href="https://github.com/OnurByte/Vexen/releases/download/v0.2.5/vexen-0.2.5-aarch64-unknown-linux-gnu.tar.gz">ARM64</a></td>
+<td><a href="#install-linux">Use npx ↓</a></td>
 </tr>
 </table>
 
@@ -119,6 +86,34 @@ Restart your coding agent. [Add the Vexen skill](docs/getting-started.md#3-use-i
 A new project starts with an empty memory. It grows as you and your agent record what you learn.
 
 [Setup help →](docs/getting-started.md)
+
+## Stop starting from scratch
+
+<p align="center"><img src="docs/assets/problem.svg" alt="Illustrative and fictional: in session one an agent retries a charge after a timeout and a test fails with a double charge. A week later a new agent tries the same thing, because it has no memory of the first failure." /></p>
+
+A new chat shouldn’t mean losing everything you learned in the last one. Keep failed attempts and important decisions with your project, ready for the next session.
+
+## Save the lesson. Keep the proof.
+
+<p align="center"><img src="docs/assets/workflow.svg" alt="Three steps: record what failed, keep the proof, and recall it only when it fits current code. Vexen can stay quiet when evidence does not apply." /></p>
+
+Your agent records an attempt and its result. Vexen keeps the source and checks whether it still fits your code before bringing it back.
+
+<p align="center"><img src="docs/assets/example.svg" alt="ILLUSTRATIVE · FICTIONAL: a sample retry-timeout failure cites a mock source file, test, and commit, and says to check current code before relying on it." /></p>
+
+*Illustrative example. When nothing applies, Vexen stays quiet.*
+
+## Your project. Your memory.
+
+<p align="center"><img src="docs/assets/principles.svg" alt="Four design principles: local first with no account, cloud or telemetry; every reminder cites its source; no relevant evidence is a valid answer; one small Rust and SQLite binary with nothing running in the background." /></p>
+
+Everything stays on your machine. No cloud, no telemetry, no chat recording. You and your agent stay in control.
+
+## Works with your coding setup
+
+<p align="center"><img src="docs/assets/clients.svg" alt="Agent and IDE icons in Vexen blue: Claude Code, Codex, Cursor, Gemini CLI, VS Code, OpenCode, Windsurf, Kiro, GitHub Copilot, Cline, Zed, Hermes, Qwen Code, Continue, Goose, Kilo, Mistral Vibe and OpenHands. Setup and test coverage vary by client." /></p>
+
+[Find your agent’s setup →](docs/getting-started.md#2-connect-your-agents) · [Compatibility & test results](docs/client-smoke-tests.md)
 
 ## Built, tested, still growing
 
