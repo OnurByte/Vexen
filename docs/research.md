@@ -16,6 +16,23 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 
 **Sources:** [Report and intervals](pilot-results.md), [raw rows](../benchmarks/memory/results/pilot-2.jsonl), [method and reproduction command](../benchmarks/memory/README.md), [first three tasks](../benchmarks/memory/tasks.py), [additional tasks](../benchmarks/memory/tasks_extra.py).
 
+### What did the coding tasks actually test?
+
+These were small Python tasks with requirements hidden from the visible tests. The saved notes described earlier failures involving those requirements. Each row below includes all four repetitions per condition, rather than a selected successful run.
+
+| Task | What the saved lesson explained | Without memory | Vexen enabled |
+|---|---|---:|---:|
+| Read an exported file | A special UTF-8 file marker needs to be handled | 1 / 4 | 3 / 4 |
+| Calculate a price | `0.125` must round to `0.13` | 1 / 4 | 2 / 4 |
+| Build a URL slug | `München` must become `muenchen` | 0 / 4 | 2 / 4 |
+| Parse an export date | `04/03/2025` means 4 March | 0 / 4 | 2 / 4 |
+| Read exported rows | Accept semicolons as well as commas | 0 / 4 | 2 / 4 |
+
+These examples show the kind of project-specific lesson Vexen can carry. They are synthetic test cases, not customer stories. The notes were prepared in advance and the agent was told to check memory. In the Vexen-enabled group, all 20 runs called the tool; the last logged response contained a failure record in 12 and no relevant evidence in eight. Even with Vexen enabled, nine runs failed.
+
+[Task definitions](../benchmarks/memory/tasks.py) · [Additional tasks](../benchmarks/memory/tasks_extra.py) · [Full results](pilot-results.md)
+
+
 ## Memory pilot, follow-up after the delivery fixes
 
 **Why:** The first pilot left open whether the lesson reached the agent. A new run (`pilot-3`, same five quirk tasks, two controls, 76 cells, one seed, Claude Code 2.1.309 with Haiku on Windows) used the instrumented runner, which records every `vexen_check` call, its arguments and its status.
@@ -44,6 +61,8 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 
 ## Relevance checks
 
+<p align="center"><img src="assets/readme-relevance.svg" alt="Relevance checks in the same pilot: all 20 stale-memory runs stayed out of the answer. On two control tasks with unrelated notes, all eight runs passed with Vexen and all eight passed without it. These small synthetic checks do not establish general safety or performance." /></p>
+
 **Question:** What happens when the note is stale or about a different file?
 
 **Result:** All 20 stale-memory target runs ended with `no_relevant_evidence`; none passed its hidden task test. On the two control tasks with notes about another file, all eight enabled runs returned no relevant evidence and passed. All eight memory-off control runs also passed.
@@ -55,6 +74,8 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 **Sources:** [Raw rows](../benchmarks/memory/results/pilot-2.jsonl), [pilot design](../benchmarks/memory/README.md), [reported results](pilot-results.md).
 
 ## Client connections
+
+<p align="center"><img src="assets/readme-open-tests.svg" alt="Compatibility study: 13 more installed clients connected and completed a Vexen read call on Linux, mostly using deterministic model drivers. Separate file-hint study: across 1,874 queries in ten repositories, the experimental method lost to simple history counts in 10 of 10 repositories and remains research-only. Neither study measures coding improvement." /></p>
 
 **Question:** Can installed coding clients discover Vexen and complete a read call?
 

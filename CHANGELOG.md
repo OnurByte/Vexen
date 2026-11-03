@@ -11,6 +11,7 @@ Vexen 1.0 and later follow semantic versioning: the command line, the four MCP t
 ## Unreleased
 
 - `vexen hook claude-code`: a Claude Code `PreToolUse` hook that shows an agent the note that still applies to the file it is about to edit, with no instruction needed. Advisory only: silent when nothing applies, never blocks or decides, never fails the tool call. Opt-in (you add it to your settings); see the setup guide. Seen working in one real Claude Code run (n=1).
+- README restructured as pain, fix, evidence, install: a real `vexen demo` card, a hero cost card (77.7% lower cost per solved task, 4.5x), a macOS, Linux and Windows install card, one-command install under the hero, secondary evidence moved to `docs/research.md`. Cards regenerate from `scripts/generate_readme_cards.py`.
 - Marketing cards and README now state comparisons as percentages next to the counts (55% against 10% solved, 78% cheaper per solved task) instead of bare numbers side by side.
 
 ## 1.0.0
