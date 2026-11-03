@@ -30,9 +30,9 @@ npx @onurbyte/vexen setup
 <p align="center"><img src="docs/assets/readme-demo.svg" alt="Real output of the vexen demo command, shortened. A lesson about retry.py is saved with a failing test, shown as observed_failure before the file is edited, then no_relevant_evidence after the file changes. The failure is invented for the demo." /></p>
 
 <p align="center">
-  <a href="docs/assets/vexen-launch.mp4"><img src="docs/assets/vexen-launch-poster.jpg" width="720" alt="Vexen launch video preview: one-command setup for macOS, Linux and Windows." /></a>
+  <a href="docs/assets/vexen-launch.mp4"><img src="docs/assets/vexen-launch.gif" width="800" alt="Animated 15-second Vexen launch demo: repository memory, pilot results, and one-command setup for macOS, Linux, and Windows." /></a>
 </p>
-<p align="center"><a href="docs/assets/vexen-launch.mp4"><strong>▶ Watch the 15-second launch video (MP4)</strong></a></p>
+<p align="center"><a href="docs/assets/vexen-launch.mp4"><strong>▶ Open the full-resolution 15-second video (MP4)</strong></a></p>
 
 ## The problem, and the fix
 
