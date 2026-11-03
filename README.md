@@ -17,6 +17,10 @@
   <img alt="Local, no account" src="https://img.shields.io/badge/local-no%20account-78a9ff?labelColor=262626" />
 </p>
 
+<p align="center">
+  <a href="https://www.producthunt.com/products/vexen?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-vexen" target="_blank" rel="noopener noreferrer"><img alt="Vexen - Memory that stops AI agents from repeating failed fixes | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1303498&theme=dark" /></a>
+</p>
+
 <p align="center"><a href="#install"><strong>Install in one command ↓</strong></a> · <a href="https://github.com/OnurByte/Vexen">⭐ Star on GitHub</a> · <a href="#the-evidence">See the evidence</a></p>
 
 ```sh
