@@ -14,7 +14,7 @@
   <img alt="Free and open source" src="https://img.shields.io/badge/free-open%20source-78a9ff?labelColor=262626" />
   <img alt="Private and local" src="https://img.shields.io/badge/private-local-78a9ff?labelColor=262626" />
   <img alt="No account required" src="https://img.shields.io/badge/account-not%20required-78a9ff?labelColor=262626" />
-  <img alt="Status: early development" src="https://img.shields.io/badge/status-early%20development-78a9ff?labelColor=262626" />
+  <img alt="Version 1.0" src="https://img.shields.io/badge/version-1.0-78a9ff?labelColor=262626" />
 </p>
 
 <p align="center"><a href="#get-started"><strong>Get started →</strong></a> · <a href="#does-it-help">See the evidence</a> · <a href="docs/getting-started.md">Setup help</a></p>
@@ -33,33 +33,33 @@ Vexen is a shared memory for AI coding tools such as **Claude Code, Codex and Cu
 
 ## Get started
 
-Open a terminal **inside the Git project you want Vexen to remember**. You'll need [Node.js 18 or newer](https://nodejs.org/) and Git.
+Open a terminal **inside the Git project you want Vexen to remember**. You'll need [Node.js 18 or newer](https://nodejs.org/) (only to run the one-time installer) and Git.
 
-**1. Create your project's memory and connect your coding tools.**
+**1. One command.**
 
 macOS / Linux:
 
 ```sh
-npx @onurbyte/vexen init
-npx @onurbyte/vexen install --scope global --npx
+npx @onurbyte/vexen setup
 ```
 
 Windows PowerShell:
 
 ```powershell
-npx.cmd @onurbyte/vexen init
-npx.cmd @onurbyte/vexen install --scope global --npx
+npx.cmd @onurbyte/vexen setup
 ```
 
-The first command creates a local `.vexen/` folder. The second adds Vexen to supported coding tools it detects. Read the output: some tools need a manual step. **Restart your coding tool** after setup.
+`setup` does everything for you: it creates your project's memory (a local `.vexen/` folder), puts a permanent copy of Vexen on your machine, connects the coding tools it finds (Claude Code, Codex, Cursor and others), adds the optional skill (Claude Code), then **starts Vexen once and checks that it answers**. It prints what it did and what it could not do. Nothing runs in the background. After setup, Node.js is no longer needed.
 
-**2. Try it in your agent's chat.**
+Want to see it work before touching your own project? `npx @onurbyte/vexen demo` runs the whole loop on a throwaway synthetic repository and deletes it afterwards.
+
+**2. Restart your coding tool, then try it in the chat.**
 
 ```text
 Use Vexen to check this project's README.md for past failures or decisions.
 ```
 
-On a new project, **“no relevant evidence” is the expected answer**. Your memory starts empty and grows as lessons are saved. If your agent can't find Vexen, follow the [connection guide](docs/getting-started.md#2-connect-your-agents).
+On a new project, **“no relevant evidence” is the expected answer**. Your memory starts empty and grows as lessons are saved. If your agent can't find Vexen, run `npx @onurbyte/vexen doctor --mcp` or follow the [connection guide](docs/getting-started.md#2-connect-your-agents).
 
 **3. Save a useful lesson when one happens.**
 
@@ -72,11 +72,7 @@ failing test result, so a future session can check what happened.
 
 Vexen only brings back failed attempts with a recorded failing test result, or decisions you've accepted. A note by itself is not a verified failure. If the file changes, an old note stops appearing.
 
-**Want reminders to check and save lessons?** Add the optional [agent skill](skills/vexen/SKILL.md). It works with the `vexen` command on your PATH or, if you only use `npx`, through `npx @onurbyte/vexen`; the setup above already connects the agent through MCP, the tool connection it uses to read and save notes. See [the setup guide](docs/getting-started.md#3-use-it).
-
-**Coming in the next release:** `vexen setup` does the steps above in one command (it also starts the server once and confirms it answers), and `vexen demo` shows the whole loop on a throwaway synthetic repository. Both are on the `implementation` branch and not in a published version yet; see [the setup guide](docs/getting-started.md#next-release-vexen-setup-and-vexen-demo).
-
-[Full setup guide →](docs/getting-started.md) · [Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
+[Full setup guide, manual steps and uninstall →](docs/getting-started.md) · [Download without Node.js →](https://github.com/OnurByte/Vexen/releases/latest)
 
 ## Works across coding tools
 
@@ -95,6 +91,12 @@ In our controlled pilot, Claude Code using Haiku solved **11 of 20 targeted task
 This was a small internal study using five synthetic tasks, pre-recorded evidence and explicit instructions to check memory. It does **not** establish general coding improvement.
 
 [See the method, the full 76-run pilot (this comparison uses 40 of its runs) and limitations →](docs/pilot-results.md) · [Inspect the raw data →](benchmarks/memory/results/pilot-2.jsonl)
+
+**Does it save money?** Not by making runs shorter: a run cost about the same. It saves by making more runs succeed, so each solved task costs less.
+
+<p align="center"><img src="docs/assets/readme-cost.svg" alt="Small internal pilot with one model: a solved task cost about 4.8 cents without memory and 1.1 cents with relevant Vexen memory. A run cost about the same either way; more runs succeeded with memory. One check adds at most 1,800 bytes, roughly 450 tokens. Twenty runs per group, synthetic tasks, not a general cost-saving claim." /></p>
+
+Cost comes from the [instrumented run](benchmarks/memory/results/pilot-3.jsonl) of the same pilot. [How it was computed, and the limits →](docs/research.md#what-a-solved-task-cost)
 
 **Useful memory also needs to know when to stay quiet.** We checked what happened when a saved note was out of date or about a different file.
 
@@ -136,7 +138,7 @@ These examples show the kind of project-specific lesson Vexen can carry. They ar
 - **A source for each reminder.** Check the file, commit and recorded result behind a note.
 - **Nothing relevant? It says so.** Old or unrelated evidence should not become advice for new code.
 
-Vexen is in early development. It gives your agent context to consider; the agent still needs to inspect the current code and test its work.
+Version 1.0: the command line, the four MCP tools and the data format are stable, and changes to them follow [semantic versioning](CHANGELOG.md#versioning). Vexen gives your agent context to consider; the agent still needs to inspect the current code and test its work. What 1.0 does not claim is listed in the [roadmap](docs/roadmap.md#what-10-means).
 
 [Privacy](docs/security.md) · [Documentation](docs/README.md) · [Compatibility](docs/client-smoke-tests.md) · [Roadmap](docs/roadmap.md) · [Report an issue](https://github.com/OnurByte/Vexen/issues)
 

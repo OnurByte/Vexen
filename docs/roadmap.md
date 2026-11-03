@@ -23,32 +23,31 @@ Where Vexen stands today, in one page. Anything not listed under *Shipped* is no
 - **File hints from Git history ("what changes together").** It lost to plain co-change counts on all ten evaluated repositories, so it is not shown by default. See [the evaluation](benchmarks.md).
 - **Code-fragment recall** and similar ideas stay off until a comparative evaluation supports them.
 
-## Built on `implementation`, not yet in a published version
+## Shipped in 1.0
 
-Each item has tests that ran; none is advertised as released.
-
-- **`vexen setup`:** Rust-native, no Node.js or Python. Starts project memory, places a permanent binary, writes MCP entries, installs the skill, then starts the server and checks that four tools answer. Evidence: `tests/setup.rs` (12 tests, including a home path with a space and a non-ASCII letter, idempotence, dry run, an edited skill left alone, a config it cannot edit safely).
-- **`vexen demo`:** synthetic lesson in a throwaway repository, shows `observed_failure` before an edit and `no_relevant_evidence` after, deletes itself.
+- **`vexen setup`:** Rust-native, no Node.js or Python after the first run. Starts project memory, places a permanent binary, writes MCP entries, installs the skill, then starts the server and checks that four tools answer. Evidence: `tests/setup.rs` (12 tests, including a home path with a space and a non-ASCII letter, idempotence, dry run, an edited skill left alone, a config it cannot edit safely).
+- **`vexen demo`:** a synthetic lesson in a throwaway repository; shows `observed_failure` before an edit and `no_relevant_evidence` after, then deletes itself.
 - **`vexen doctor --mcp`:** a real stdio handshake. It proves the server works, not that an agent loads it.
 - **Skill activation:** the skill is MCP-first and records the command for the machine. Verified with a real agent for Claude Code only (one run, one model, Windows); other agents have no verified skill path and are not claimed.
-- **Memory lifecycle tests:** property-based (`tests/lifecycle.rs`): never a stale or superseded note, a failing result is not hidden, at most three items, intact chain, lossless idempotent export and import. A deliberately broken check was caught.
-- **MCP Inspector smoke:** `scripts/inspector_smoke.py` drives the server with the official Inspector (pinned 2.13.0) in CI; it checks the text block and the structured content in four situations. A development check, not a runtime dependency.
-- **README cards:** regenerated at 720 units wide with no text under 24 units so they stay readable on a phone; checked at 360 and 768 px in light and dark.
+- **Lifecycle tests:** property-based (`tests/lifecycle.rs`): never a stale or superseded note, a failing result is not hidden, at most three items, intact chain, lossless idempotent export and import.
+- **MCP Inspector smoke:** `scripts/inspector_smoke.py` drives the server with the official Inspector (pinned 2.13.0) in CI. A development check, not a runtime dependency.
+- **`vexen observe-junit`:** attaches failing tests from a JUnit XML report (nextest, pytest, Maven, Jest) to a record, without storing messages or output; idempotent. Chosen from the [GitHub research](development/github-strengthening-opportunities.md) (item 1) because it adds the structured test evidence the product already depends on without a new runtime service. Tests: `tests/junit.rs` and parser unit tests.
+- **A real-agent finding, fixed:** free-text `query` used to hide the note for the asked file (0 of 6 such runs got the lesson); it is now a hint when `paths` is given.
+- **Full test suite on Windows, macOS and Linux:** the control-character path test now builds its commit from the index, so it runs everywhere.
+- **README cards** are 720 units wide with no text under 24 units, checked at 360 and 768 px in light and dark.
 
 ## Evaluated and deferred
 
-- `cargo-nextest`, `add-mcp`, `cargo-dist`, `self_update`/`axoupdater`, tree-sitter: not adopted. Each would add a dependency or a second installer without closing a gap that current tests leave open. Revisit when a concrete need appears.
+- `cargo-nextest` as a dependency (its reports are read through the generic JUnit importer instead), `add-mcp`, `cargo-dist`, `self_update`/`axoupdater`, tree-sitter: not adopted. Each would add a dependency or a second installer without closing a gap that current tests leave open. Revisit when a concrete need appears.
 - A verified skill path for agents other than Claude Code, and live checks of more clients: need those apps and accounts installed.
 - Project-key signing of releases: needs a repository secret only the maintainers can add.
 
-## What 1.0 would need
+## What 1.0 means
 
-These are proposed criteria, not commitments:
+1.0 is a compatibility promise, not a claim that every question is answered.
 
-1. A paired evaluation on real repository tasks, with more than one agent and uncertainty estimates.
-2. Frozen CLI, MCP and data-format contracts, with upgrade tests from every earlier store version.
-3. Live checks for each client labelled stable; the rest labelled beta.
-4. An independent human security review and a documented release-signing story.
-5. Test fixtures that run on Windows, macOS and Linux without platform skips.
+- **Stable:** the command-line commands and flags, the four MCP tools and their schemas, and the data formats ([formats](formats.md); store schema version 1 is the only one ever shipped, and a change to it will come with a tested migration). Breaking changes need a major version.
+- **Checked live with a real agent:** Claude Code, OpenCode and Codex CLI (one session each). **Beta:** the other clients; they completed a real `vexen_check` call but were not used for real work. See the [client checks](client-smoke-tests.md).
+- **Not part of the 1.0 claim:** a paired evaluation on real repository tasks with more than one agent (the pilots use one model and synthetic tasks); an independent human security review; releases signed with a project key (builds carry GitHub build-provenance attestations and SHA-256 files); file hints and code-fragment recall, which stay experimental and off by default.
 
 History of releases: [CHANGELOG](../CHANGELOG.md).

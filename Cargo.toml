@@ -1,6 +1,6 @@
 [package]
 name = "vexen"
-version = "0.2.5"
+version = "1.0.0"
 edition = "2024"
 license = "GPL-3.0-or-later"
 
@@ -15,6 +15,7 @@ schemars = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std"] }
 clap = { version = "4", features = ["derive"] }
 toml_edit = "0.22"
+quick-xml = "0.38"
 
 [dev-dependencies]
 rmcp = { version = "=3.8.0", features = ["client", "transport-async-rw"] }

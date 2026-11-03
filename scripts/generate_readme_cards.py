@@ -223,3 +223,24 @@ def clients(c):
 
 save('clients.svg', 'Your agents. One project memory.',
      'Coding tools with Vexen setup or runtime test coverage, including Claude Code, Codex, Cursor, Gemini CLI and VS Code. Setup steps and test coverage differ by tool.', clients)
+
+
+def cost(c):
+    head(c, 'Same spend. More tasks solved.', 'What one solved task cost in our pilot.')
+    tile_w = (W - 2 * PAD - 16) // 2
+    top = round(c.y)
+    for i, (num, label, color, stroke) in enumerate([('$0.048', 'without memory', INK, 'none'), ('$0.011', 'with relevant memory', BLUE, BLUE)]):
+        x = PAD + i * (tile_w + 16)
+        c.parts.append(f'<rect x="{x}" y="{top}" width="{tile_w}" height="150" rx="20" fill="{CARD}" stroke="{stroke}" stroke-width="2"/>')
+        c.parts.append(text(num, x + 24, top + 76, 54, color, 'bold'))
+        c.parts.append(text(label, x + 24, top + 120, MIN, SOFT))
+    c.y = top + 150 + 28
+    c.para('A run cost about the same either way: $0.007 without memory, $0.006 with it. Memory made more of those runs succeed, so each solved task cost less.', MIN, INK)
+    c.gap(10)
+    c.para('One check adds at most 1,800 bytes, roughly 450 tokens.', MIN, INK)
+    c.gap(10)
+    c.para('20 runs per group, one model, synthetic tasks. Runs were not shorter, only more successful. Not a general cost-saving claim.', MIN, SOFT)
+
+
+save('readme-cost.svg', 'Same spend. More tasks solved.',
+     'In a small internal pilot with one model, a solved task cost about 4.8 cents without memory and 1.1 cents with relevant Vexen memory, because the cost per run was about the same and more runs succeeded. A check adds at most 1,800 bytes, roughly 450 tokens. Twenty runs per group, synthetic tasks, not a general cost-saving claim.', cost)

@@ -30,6 +30,18 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 
 **Sources:** [pilot-3 rows](../benchmarks/memory/results/pilot-3.jsonl), [table](../benchmarks/memory/results/pilot-3.table.md), [manifest](../benchmarks/memory/results/pilot-3.manifest.json), [pilot-4 rows](../benchmarks/memory/results/pilot-4-memory-on.jsonl), [table](../benchmarks/memory/results/pilot-4-memory-on.table.md).
 
+## What a solved task cost
+
+**Question:** Does remembering save money?
+
+**Result:** Not by shortening runs. In `pilot-3` (instrumented run, five quirk tasks, 20 runs per group, cost as reported by Claude Code) a run cost about $0.007 without memory and $0.006 with relevant memory, while 3 of 20 and 12 of 20 runs passed. Dividing total cost by passing runs gives about $0.048 and $0.011 per solved task. The first pilot (`pilot-2`) gives $0.070 and $0.011, and the post-fix memory-on run (`pilot-4-memory-on`) $0.0075. Memory-on runs took more turns (8.6 versus 5.3 on average), because they check memory first.
+
+**Context cost:** a check returns at most 1,800 bytes of text (a tested cap), roughly 450 tokens at four bytes per token (an estimate, not a measurement).
+
+**Limits:** Cost per solved task is a ratio of two small counts, so it moves a lot with one more or fewer success. One model, synthetic tasks, tailored notes, explicit prompting. In the memory-off runs the agent gave up on a wrong answer; this does not measure the cost of long retry loops that real work can have. It does not support a general claim that Vexen reduces tokens.
+
+**Sources:** [pilot-2](../benchmarks/memory/results/pilot-2.jsonl), [pilot-3](../benchmarks/memory/results/pilot-3.jsonl), [pilot-4](../benchmarks/memory/results/pilot-4-memory-on.jsonl).
+
 ## Relevance checks
 
 **Question:** What happens when the note is stale or about a different file?

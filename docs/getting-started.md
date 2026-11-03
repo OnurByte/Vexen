@@ -2,6 +2,20 @@
 
 This page takes you from nothing to a saved and retrieved lesson. You need Git and one of: Node.js 18 or newer (easiest), or a prebuilt binary, or a Rust toolchain.
 
+## The short way: one command
+
+Open a terminal **inside the Git project you want Vexen to remember**.
+
+```sh
+npx @onurbyte/vexen setup          # PowerShell: npx.cmd @onurbyte/vexen setup
+```
+
+`setup` creates the project's memory, puts a permanent copy of Vexen on your machine (so Node.js is not needed afterwards), connects the coding tools it finds, installs the skill where a verified path exists (Claude Code), then starts Vexen once and checks that its four tools answer. Useful options: `--dry-run` shows the plan and writes nothing, `--agent <name>` limits it to one tool, `--force` replaces a skill file you edited. It exits with code 2 when a step failed or no agent was found, and it never claims your agent loads the entry: restart the agent and ask the question in step 3.
+
+Other commands: `vexen demo` (the whole loop on a throwaway synthetic repository, deleted afterwards), `vexen doctor --mcp` (start the server and list its tools), `vexen uninstall --skill` (remove what `setup` wrote; project memory is never deleted).
+
+The rest of this page is the manual route and the reference.
+
 ## 1. Run it (pick one)
 
 ### With `npx`: no install, no Rust
@@ -73,19 +87,6 @@ Writing a config file is not the same as your agent using Vexen. Four separate t
 
 Which tools have been tested, and how far, is in the [client checks](client-smoke-tests.md). The file formats of the automated clients are covered by tests; installer-written configuration was exercised live for Claude Code and OpenCode.
 
-### Next release: `vexen setup` and `vexen demo`
-
-Not in a published version yet (they are on the `implementation` branch). With the binary:
-
-```sh
-vexen setup              # in your Git project
-vexen setup --dry-run    # show the plan, write nothing
-vexen demo               # a throwaway synthetic repository, deleted afterwards
-vexen doctor --mcp       # start the server and list its tools
-```
-
-`setup` starts your project's memory, copies a binary that runs from a temporary cache to a permanent folder, adds the MCP entry for the agents it finds, installs the skill where a path is verified (Claude Code only so far), then starts the server once and checks that its four tools answer. It exits with code 2 when a step failed or an agent was not found, and it never claims that your agent loads the entry: restart the agent and ask the question in step 3 above. `vexen uninstall --skill` removes what `setup` wrote; project memory is never deleted.
-
 ## 3. Use it
 
 ### Save your first lesson
@@ -100,6 +101,17 @@ vexen check --path src/retry.rs
 ```
 
 `vexen observe` runs the command you type and stores only its exit code and a hash of its output. The note now appears for `src/retry.rs` as long as that file is unchanged. Vexen only brings back attempts with a recorded **failing** test result, and decisions you have accepted (`vexen record --kind decision`). Edit the file and the old note stops appearing, by design.
+
+### From a test report (JUnit XML)
+
+Most test runners can write a JUnit XML report (`cargo nextest run --profile ci`, `pytest --junitxml=report.xml`, Maven, Jest). Instead of re-running a command, attach the failing tests of a report you already have:
+
+```sh
+vexen observe-junit <event-id> report.xml            # failing tests only
+vexen observe-junit <event-id> report.xml --test retry   # also passing tests whose name contains "retry"
+```
+
+Only test names and pass/fail are stored; failure messages, stack traces and captured output are dropped. Skipped tests and tests that only passed after a retry are left out, at most 20 failures are attached per call, and importing the same report twice adds nothing. It is a result you supplied, not a run Vexen watched, and Vexen says so.
 
 ### From an agent over MCP
 

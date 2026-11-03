@@ -265,10 +265,36 @@ fn shallow_history_is_bounded_to_available_commits() {
 fn control_separator_in_path_does_not_split_commits_and_empty_commits_are_safe() {
     let r = Repo::new();
     r.init();
-    r.commit(
-        &[("odd\u{1e}name.rs", "one"), ("peer.rs", "one")],
+    // Windows cannot hold a control character in a file name, so the commit is built
+    // from the index alone (no working-tree file); Git itself stores the name happily.
+    for (path, body) in [("odd\u{1e}name.rs", "one"), ("peer.rs", "one")] {
+        let blob = {
+            let mut child = Command::new("git")
+                .arg("-C")
+                .arg(&r.0)
+                .args(["hash-object", "-w", "--stdin"])
+                .stdin(std::process::Stdio::piped())
+                .stdout(std::process::Stdio::piped())
+                .spawn()
+                .unwrap();
+            std::io::Write::write_all(&mut child.stdin.take().unwrap(), body.as_bytes()).unwrap();
+            String::from_utf8(child.wait_with_output().unwrap().stdout)
+                .unwrap()
+                .trim()
+                .to_string()
+        };
+        r.git(&["-c", "core.protectNTFS=false", "update-index", "--add", "--cacheinfo", &format!("100644,{blob},{path}")]);
+    }
+    r.git(&[
+        "-c",
+        "user.name=Fixture",
+        "-c",
+        "user.email=fixture@example.invalid",
+        "commit",
+        "--quiet",
+        "-m",
         "separator path",
-    );
+    ]);
     r.git(&[
         "-c",
         "user.name=Fixture",

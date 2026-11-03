@@ -1,6 +1,6 @@
 # Changelog
 
-Vexen is in early development. Versions below 1.0 may change behavior between releases.
+Vexen 1.0 and later follow semantic versioning: the command line, the four MCP tools and the data formats are stable within a major version.
 
 ## Versioning
 
@@ -8,11 +8,16 @@ Vexen is in early development. Versions below 1.0 may change behavior between re
 - The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
 - `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
 
-## Unreleased
+## 1.0.0
 
-- `vexen setup`, `vexen demo`, `vexen doctor --mcp`, `vexen uninstall --skill`: guided Rust-native setup with a real server check, a synthetic demo, and an embedded skill with an ownership marker. Not in a published version yet.
+First stable release: guided setup, a safe demo, tested on Windows, macOS and Linux, and a documented compatibility promise (see the [roadmap](docs/roadmap.md#what-10-means)).
+
+- `vexen setup`, `vexen demo`, `vexen doctor --mcp`, `vexen uninstall --skill`: guided Rust-native setup with a real server check, a synthetic demo, and an embedded skill with an ownership marker.
 - Fix: `vexen_check` with `paths` no longer lets free-text `query` hide the note recorded for that file. A real-agent run showed 0 of 6 runs that sent `query` received the lesson.
 - New evaluation rows `pilot-3` and `pilot-4-memory-on` (historical pilots untouched); see the research summary for caveats.
+- `vexen observe-junit <id> report.xml [--test name]`: attach failing tests from a JUnit XML report to a record (names and pass/fail only; idempotent).
+- Test fix: the control-character path test builds its commit from the index, so the whole suite passes on Windows.
+- New cost card and notes (cost per solved task from the same pilot; see the research summary).
 - Skill rewritten MCP-first; setup records the command for the machine in it.
 - Tests: property-based lifecycle tests (`proptest`), setup/demo tests, and a CI job that drives the server with the pinned MCP Inspector (`scripts/inspector_smoke.py`).
 - README cards, including the clients card, regenerated for phone widths (`scripts/generate_readme_cards.py`).

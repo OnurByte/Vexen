@@ -4,6 +4,7 @@ mod export;
 mod import;
 mod demo;
 mod init;
+mod junit;
 mod install;
 mod observe;
 mod record;
@@ -131,6 +132,18 @@ enum Cmd {
         #[arg(last = true, required = true)]
         command: Vec<String>,
     },
+    /// Attach failing tests from a JUnit XML report (nextest, pytest, Maven, Jest...) to a record.
+    ObserveJunit {
+        /// Record id printed by `vexen record`.
+        id: String,
+        /// Path to the JUnit XML report.
+        report: PathBuf,
+        /// Only tests whose name contains this text (also attaches passing ones).
+        #[arg(long)]
+        test: Option<String>,
+        #[command(flatten)]
+        repo: RepoArg,
+    },
     /// Add Vexen's MCP entry to agent config files (previews with --dry-run).
     Install(install::InstallArgs),
     /// Remove only the MCP entry that `install` wrote.
@@ -209,6 +222,7 @@ pub fn main() -> ExitCode {
         Cmd::Setup(args) => return setup::run_setup(args),
         Cmd::Demo(args) => demo::run(args),
         Cmd::Observe { id, test_id, key, repo, command } => observe::run(&repo, id, test_id, key, command),
+        Cmd::ObserveJunit { id, report, test, repo } => junit::run(&repo, id, &report, test),
         Cmd::Install(args) => return install::run_install(args, false),
         Cmd::Uninstall(args) => return install::run_install(args, true),
         Cmd::Export { format, repo } => export::run(&repo, format),

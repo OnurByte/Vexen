@@ -2,7 +2,7 @@
 name: vexen
 description: Check and save evidence-backed repository memory with Vexen. Use before editing files in a Git repository to see whether a past failed attempt or accepted decision still applies, and after a failed attempt or a user-accepted decision to record it with its source. Answers "no relevant evidence" when nothing fits.
 license: GPL-3.0-or-later
-compatibility: Needs Vexen (0.2.2 or newer) and Git. Reading works through the MCP tools `vexen_check` and `vexen_explain` when they are connected; saving uses the `vexen` command, which `vexen setup` installs and records in this skill, or which must be on PATH or reachable through npx. Works offline.
+compatibility: Needs Vexen (1.0.0 or newer) and Git. Reading works through the MCP tools `vexen_check` and `vexen_explain` when they are connected; saving uses the `vexen` command, which `vexen setup` installs and records in this skill, or which must be on PATH or reachable through npx. Works offline.
 metadata:
   repository: https://github.com/OnurByte/Vexen
 ---
@@ -16,7 +16,7 @@ Vexen keeps a small local record of what past attempts in this repository showed
 Use the first that works.
 
 1. **MCP tools (preferred for reading; no shell needed).** If your tool list has `vexen_check` and `vexen_explain` (sometimes shown as `mcp__vexen__vexen_check`), call them. Every call needs `repo_root`: the **absolute path of the repository root**.
-2. **The command line.** If this file starts with a line saying which command to run Vexen as on this machine (written by `vexen setup`), use that command wherever this guide says `vexen`. Otherwise run `vexen --version` (0.2.2 or newer). If `vexen` is not on the PATH but Node.js 18 or newer is, use `npx @onurbyte/vexen` in its place (the first call downloads and verifies the binary). If neither works, tell the user and point them to https://github.com/OnurByte/Vexen/releases. Do not download or install anything silently.
+2. **The command line.** If this file starts with a line saying which command to run Vexen as on this machine (written by `vexen setup`), use that command wherever this guide says `vexen`. Otherwise run `vexen --version` (1.0.0 or newer). If `vexen` is not on the PATH but Node.js 18 or newer is, use `npx @onurbyte/vexen` in its place (the first call downloads and verifies the binary). If neither works, tell the user and point them to https://github.com/OnurByte/Vexen/releases. Do not download or install anything silently.
 
 If the repository is not set up yet (`vexen_check` or `vexen doctor` says it is not initialized), ask the user before running `vexen init`: it creates a `.vexen/` folder whose database files are git-ignored.
 
@@ -59,6 +59,8 @@ If a test command is cheap and the user has asked you to run it, `vexen observe`
 ```sh
 vexen observe <event-id> --test-id retry_timeout_no_duplicate_charge -- cargo test retry_timeout
 ```
+
+If the project already writes a JUnit XML report (`cargo nextest`, `pytest --junitxml`), attach its failing tests instead of re-running: `vexen observe-junit <event-id> report.xml`.
 
 Record a decision only when the user has explicitly accepted it:
 
