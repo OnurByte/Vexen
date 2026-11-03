@@ -41,7 +41,7 @@ Use [Geist](https://vercel.com/font) for headings and body text, and Geist Mono 
 
 ## Launch badges
 
-Product Hunt and Peerlist Launchpad badges are added only after Vexen has a real listing on that site, using the embed code the site gives for that listing, and worded as a listing ("Featured on", "Launched on"), never as an award or endorsement unless one was actually won. No listing has been verified yet, so none is shown.
+Product Hunt and Peerlist Launchpad badges are added only after Vexen has a real listing on that site, using the embed code the site gives for that listing, and worded as a listing ("Featured on", "Launched on"), never as an award or endorsement unless one was actually won. The Product Hunt badge is shown (embed code from the listing, post 1303498, dark theme). No Peerlist listing has been verified yet, so none is shown.
 
 ## Message examples
 
