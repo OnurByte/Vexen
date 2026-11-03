@@ -1,0 +1,19 @@
+Vexen demo: a synthetic example. Your own repository is not touched.
+Working in a throwaway repository: <temporary folder>
+
+1. A fix fails a test. The lesson is saved with its file and its test result.
+   (This failure is invented for the demo; a real one comes from your agent's work.)
+   saved: retry.py + failing test `demo::retry_does_not_double_charge`
+
+2. A later session checks the file before editing it.
+  $ vexen check --path retry.py    # same call the MCP tool makes
+    status: observed_failure
+    note:   Observed failure (applicability checked; not a guarantee) for retry.py: "[synthetic demo] Retrying the payment request after a timeout charged the customer twice. The retry needs an idempotency key."
+
+3. The file is fixed and changes. The old note no longer describes this code, so it stays quiet.
+  $ vexen check --path retry.py    # after the file changed
+    status: no_relevant_evidence
+    note:   (nothing: no relevant evidence)
+
+That is the whole idea: failures are saved with their evidence, shown while they still apply, and dropped when the code moves on.
+Next: `vexen setup` to connect your coding tools, then ask your agent to save a real lesson.
