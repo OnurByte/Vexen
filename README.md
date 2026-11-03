@@ -29,6 +29,11 @@ npx @onurbyte/vexen setup
 
 <p align="center"><img src="docs/assets/readme-demo.svg" alt="Real output of the vexen demo command, shortened. A lesson about retry.py is saved with a failing test, shown as observed_failure before the file is edited, then no_relevant_evidence after the file changes. The failure is invented for the demo." /></p>
 
+<p align="center">
+  <a href="docs/assets/vexen-launch.mp4"><img src="docs/assets/vexen-launch-poster.jpg" width="720" alt="Vexen launch video preview: one-command setup for macOS, Linux and Windows." /></a>
+</p>
+<p align="center"><a href="docs/assets/vexen-launch.mp4"><strong>▶ Watch the 15-second launch video (MP4)</strong></a></p>
+
 ## The problem, and the fix
 
 <p align="center"><img src="docs/assets/readme-before-after.svg" alt="Illustrative scenario. Without Vexen: Claude tries a fix on Monday, the test fails, and a fresh Codex chat on Friday may try it again. With Vexen: the failure and test result are saved, so Codex can check them and decide whether the lesson still applies." /></p>
