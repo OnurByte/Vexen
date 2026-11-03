@@ -23,6 +23,6 @@ Four places, in the order most people need them.
 
 ## Development and archive
 
-- [`development/`](development/): proposals, research notes and the working brief for this cleanup. None of it is shipped functionality.
+- [`development/`](development/) (including the [GitHub research behind the 1.0 feature choice](development/github-research-2026-11.md)): proposals, research notes and the working brief for this cleanup. None of it is shipped functionality.
 - [`archive/`](archive/): the original specification, milestone reports and other historical documents, plus a [record of what was removed](archive/README.md).
 - Project-wide: [brand guide](../brand.md), [changelog](../CHANGELOG.md).

@@ -39,6 +39,7 @@ Where Vexen stands today, in one page. Anything not listed under *Shipped* is no
 ## Evaluated and deferred
 
 - `cargo-nextest` as a dependency (its reports are read through the generic JUnit importer instead), `add-mcp`, `cargo-dist`, `self_update`/`axoupdater`, tree-sitter: not adopted. Each would add a dependency or a second installer without closing a gap that current tests leave open. Revisit when a concrete need appears.
+- A Claude Code hook that checks before edits (the largest remaining gap: unprompted use) is the next candidate; see the [GitHub research](development/github-research-2026-11.md).
 - A verified skill path for agents other than Claude Code, and live checks of more clients: need those apps and accounts installed.
 - Project-key signing of releases: needs a repository secret only the maintainers can add.
 
