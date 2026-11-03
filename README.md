@@ -84,29 +84,31 @@ The installer supports eight tools. Additional clients have been tested with rea
 
 ## Does it help?
 
-<p align="center"><img src="docs/assets/readme-evidence.svg" alt="Small internal coding pilot: 11 successful runs out of 20 with relevant Vexen memory, versus 2 out of 20 without memory. Five synthetic tasks, one model, pre-recorded evidence and explicit instructions to check memory. Not a general coding performance claim." /></p>
+<p align="center"><img src="docs/assets/readme-evidence.svg" alt="Small internal coding pilot: 55% of runs solved with relevant Vexen memory (11 of 20), versus 10% without memory (2 of 20), 45 percentage points more. Five synthetic tasks, one model, pre-recorded evidence and explicit instructions to check memory. Not a general coding performance claim." /></p>
 
-In our controlled pilot, Claude Code using Haiku solved **11 of 20 targeted task runs with relevant Vexen memory**, compared with **2 of 20 without memory**.
+In our controlled pilot, Claude Code using Haiku solved **55% of targeted task runs with relevant Vexen memory** (11 of 20), compared with **10% without memory** (2 of 20): 45 percentage points more.
+
+A later run on the same tasks, after we fixed a retrieval bug it exposed, solved 60% with memory against 15% without (12 of 20 against 3 of 20), and 85% (17 of 20) once the fix was in. That last number is a check of the fix, not an independent test. [Details and caveats →](docs/research.md#memory-pilot-follow-up-after-the-delivery-fixes)
 
 This was a small internal study using five synthetic tasks, pre-recorded evidence and explicit instructions to check memory. It does **not** establish general coding improvement.
 
 [See the method, the full 76-run pilot (this comparison uses 40 of its runs) and limitations →](docs/pilot-results.md) · [Inspect the raw data →](benchmarks/memory/results/pilot-2.jsonl)
 
-**Does it save money?** Not by making runs shorter: a run cost about the same. It saves by making more runs succeed, so each solved task costs less.
+**Does it save money?** In our pilot a solved task cost **78% less** with memory ($0.048 down to $0.011). A single run cost only about 11% less; most of the saving comes from more runs succeeding, so fewer paid attempts are wasted.
 
-<p align="center"><img src="docs/assets/readme-cost.svg" alt="Small internal pilot with one model: a solved task cost about 4.8 cents without memory and 1.1 cents with relevant Vexen memory. A run cost about the same either way; more runs succeeded with memory. One check adds at most 1,800 bytes, roughly 450 tokens. Twenty runs per group, synthetic tasks, not a general cost-saving claim." /></p>
+<p align="center"><img src="docs/assets/readme-cost.svg" alt="Small internal pilot with one model: a solved task cost 78% less with relevant Vexen memory: about 1.1 cents instead of 4.8 cents. A single run cost about 11% less; most of the saving comes from more runs succeeding (60% against 15%). One check adds at most 1,800 bytes, roughly 450 tokens. Twenty runs per group, synthetic tasks, not a general cost-saving claim." /></p>
 
 Cost comes from the [instrumented run](benchmarks/memory/results/pilot-3.jsonl) of the same pilot. [How it was computed, and the limits →](docs/research.md#what-a-solved-task-cost)
 
 **Useful memory also needs to know when to stay quiet.** We checked what happened when a saved note was out of date or about a different file.
 
-<p align="center"><img src="docs/assets/readme-relevance.svg" alt="Relevance checks in the same pilot: all 20 stale-memory runs returned no relevant evidence. On two control tasks with unrelated notes, all eight runs passed with Vexen and all eight passed without it. These small synthetic checks do not establish general safety or performance." /></p>
+<p align="center"><img src="docs/assets/readme-relevance.svg" alt="Relevance checks in the same pilot: all 20 stale-memory runs stayed out of the answer. On two control tasks with unrelated notes, all eight runs passed with Vexen and all eight passed without it. These small synthetic checks do not establish general safety or performance." /></p>
 
 The stale-note check measured whether an old record was withheld; those runs solved 0 of 20 tasks. The control result means no drop was observed on those two tasks. Neither is a guarantee for other projects. [Read the relevance checks →](docs/research.md#relevance-checks)
 
 **Tested connections. Published misses.** We also test whether coding tools can actually retrieve a saved note, and publish experiments that did not earn a place in the default product.
 
-<p align="center"><img src="docs/assets/readme-open-tests.svg" alt="Compatibility study: 13 additional installed clients completed a Vexen read call on Linux, mostly using deterministic model drivers. Separate file-hint study: across 1,874 queries in ten repositories, the experimental method lost to simple history counts in every repository and remains research-only. Neither study measures coding improvement." /></p>
+<p align="center"><img src="docs/assets/readme-open-tests.svg" alt="Compatibility study: 13 more installed clients connected and completed a Vexen read call on Linux, mostly using deterministic model drivers. Separate file-hint study: across 1,874 queries in ten repositories, the experimental method lost to simple history counts in 10 of 10 repositories and remains research-only. Neither study measures coding improvement." /></p>
 
 [See the 13 client checks →](docs/client-smoke-tests.md) · [Read the unsuccessful file-hint experiment →](docs/benchmarks.md)
 

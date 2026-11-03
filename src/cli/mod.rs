@@ -1,6 +1,7 @@
 mod check;
 mod doctor;
 mod export;
+mod hook;
 mod import;
 mod demo;
 mod init;
@@ -132,6 +133,11 @@ enum Cmd {
         #[arg(last = true, required = true)]
         command: Vec<String>,
     },
+    /// Answer an agent's hook call: print the notes that apply to the file about to be edited.
+    Hook {
+        #[arg(value_enum)]
+        agent: HookAgent,
+    },
     /// Attach failing tests from a JUnit XML report (nextest, pytest, Maven, Jest...) to a record.
     ObserveJunit {
         /// Record id printed by `vexen record`.
@@ -160,6 +166,11 @@ enum Cmd {
 pub enum Format {
     Jsonl,
     Markdown,
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+pub enum HookAgent {
+    ClaudeCode,
 }
 
 #[derive(clap::Args)]
@@ -222,6 +233,9 @@ pub fn main() -> ExitCode {
         Cmd::Setup(args) => return setup::run_setup(args),
         Cmd::Demo(args) => demo::run(args),
         Cmd::Observe { id, test_id, key, repo, command } => observe::run(&repo, id, test_id, key, command),
+        Cmd::Hook { agent } => match agent {
+            HookAgent::ClaudeCode => hook::run_claude_code(),
+        },
         Cmd::ObserveJunit { id, report, test, repo } => junit::run(&repo, id, &report, test),
         Cmd::Install(args) => return install::run_install(args, false),
         Cmd::Uninstall(args) => return install::run_install(args, true),

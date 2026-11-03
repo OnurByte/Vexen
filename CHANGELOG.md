@@ -8,6 +8,11 @@ Vexen 1.0 and later follow semantic versioning: the command line, the four MCP t
 - The published sequence is `0.1.0, 0.1.1, 0.2.0, 0.2.1, 0.2.2, 0.2.3`. `0.1.1` to `0.2.0` was a deliberate minor bump (the installer and `observe` were new features) made before the guard existed. Published tags, releases and npm versions are not renumbered: an npm version number cannot be reused once published.
 - `0.2.1` carried no code changes (npm publishing moved to trusted OIDC).
 
+## Unreleased
+
+- `vexen hook claude-code`: a Claude Code `PreToolUse` hook that shows an agent the note that still applies to the file it is about to edit, with no instruction needed. Advisory only: silent when nothing applies, never blocks or decides, never fails the tool call. Opt-in (you add it to your settings); see the setup guide. Seen working in one real Claude Code run (n=1).
+- Marketing cards and README now state comparisons as percentages next to the counts (55% against 10% solved, 78% cheaper per solved task) instead of bare numbers side by side.
+
 ## 1.0.0
 
 First stable release: guided setup, a safe demo, tested on Windows, macOS and Linux, and a documented compatibility promise (see the [roadmap](docs/roadmap.md#what-10-means)).

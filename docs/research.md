@@ -34,7 +34,7 @@ Vexen carries saved failures and accepted decisions between coding sessions. Our
 
 **Question:** Does remembering save money?
 
-**Result:** Not by shortening runs. In `pilot-3` (instrumented run, five quirk tasks, 20 runs per group, cost as reported by Claude Code) a run cost about $0.007 without memory and $0.006 with relevant memory, while 3 of 20 and 12 of 20 runs passed. Dividing total cost by passing runs gives about $0.048 and $0.011 per solved task. The first pilot (`pilot-2`) gives $0.070 and $0.011, and the post-fix memory-on run (`pilot-4-memory-on`) $0.0075. Memory-on runs took more turns (8.6 versus 5.3 on average), because they check memory first.
+**Result:** A solved task cost 77.7% less with memory (the card rounds to 78%), but not because runs got shorter. In `pilot-3` (instrumented run, five quirk tasks, 20 runs per group, cost as reported by Claude Code) a run cost $0.0073 without memory and $0.0065 with relevant memory (10.9% less), while 3 of 20 (15%) and 12 of 20 (60%) runs passed. Dividing total cost by passing runs gives $0.0484 and $0.0108 per solved task, a 77.7% reduction. The first pilot (`pilot-2`) gives $0.070 and $0.011, and the post-fix memory-on run (`pilot-4-memory-on`) $0.0075. Memory-on runs took more turns (8.6 versus 5.3 on average), because they check memory first.
 
 **Context cost:** a check returns at most 1,800 bytes of text (a tested cap), roughly 450 tokens at four bytes per token (an estimate, not a measurement).
 
