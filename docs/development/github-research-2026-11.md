@@ -19,7 +19,7 @@ Repository searches on GitHub (`gh search repos`, sorted by stars) for four them
 | Attach failing tests from a JUnit XML report | Local, offline, no new service; the exit code and test name are exactly what a note needs | **Built**: `vexen observe-junit` (names and pass/fail only, idempotent, tests in `tests/junit.rs`) |
 | Property-based lifecycle tests | Closes a gap in example tests | **Built** (earlier) |
 | MCP Inspector as an independent protocol check | Development-time only | **Built** (earlier, CI job) |
-| Claude Code hook that runs `vexen check` before an edit | Would fix unprompted use, the biggest caveat in the pilots | **Not built.** It edits an agent's settings file and needs its own paired evaluation without the "please check memory" instruction. Next candidate |
+| Claude Code hook that runs `vexen check` before an edit | Would fix unprompted use, the biggest caveat in the pilots | **Built** (`vexen hook claude-code`, `tests/hook.rs`). Opt-in: Vexen does not edit the settings file. One real run showed the agent receiving the note without being told to check memory; a paired evaluation is still to do |
 | Code-fragment recall, embeddings, vector database, separate memory server | Break the small, offline contract; no evidence they fix a current failure | Rejected for now |
 | `cargo-nextest` as a dependency | A second tool for little gain | Rejected; its JUnit output is read by the generic importer instead |
 

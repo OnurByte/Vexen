@@ -133,6 +133,25 @@ npx skills add OnurByte/Vexen
 
 The skill is MCP-first: it reads through `vexen_check` and `vexen_explain` when your agent has them, and saves through the `vexen` command. It does not install Vexen itself. It works with `vexen` on your `PATH` or, if you only use `npx`, through `npx @onurbyte/vexen`.
 
+### Check automatically before every edit (Claude Code)
+
+The skill only reminds an agent; a hook runs without being asked. Add this to `.claude/settings.local.json` in your project (or your user settings), with the full path to your `vexen` binary if it is not on your `PATH`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [{ "type": "command", "command": "vexen hook claude-code" }]
+      }
+    ]
+  }
+}
+```
+
+Before Claude edits a file, `vexen hook claude-code` looks for a note that still applies to that file and, if there is one, hands it to the agent as advisory context. When nothing applies it prints nothing. It never blocks an edit, never answers a permission question and makes no network call. In one real run (Claude Code with Haiku, no instruction to check memory) the agent received the note and mentioned it in its answer; that is a single observation, not a measured rate. Vexen does not edit your settings file for you.
+
 ### Moving data
 
 `vexen export --format jsonl` and `vexen import` move a store as versioned JSONL; `--format markdown` prints a readable list. See [data formats](formats.md).
